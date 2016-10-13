@@ -902,14 +902,16 @@ std::string ArgsManager::GetChainName() const
 {
     bool fRegTest = ArgsManagerHelper::GetNetBoolArg(*this, "-regtest");
     bool fTestNet = ArgsManagerHelper::GetNetBoolArg(*this, "-testnet");
+    bool is_chain_arg_set = gArgs.IsArgSet("-chain");
 
-    if (fTestNet && fRegTest)
-        throw std::runtime_error("Invalid combination of -regtest and -testnet.");
+    if (is_chain_arg_set + fRegTest + fTestNet > 1) {
+        throw std::runtime_error("Invalid combination of -regtest, -testnet and -chain. Can use at most one.");
+    }
     if (fRegTest)
         return CBaseChainParams::REGTEST;
     if (fTestNet)
         return CBaseChainParams::TESTNET;
-    return CBaseChainParams::MAIN;
+    return gArgs.GetArg("-chain", CBaseChainParams::MAIN);
 }
 
 #ifndef WIN32
