@@ -101,6 +101,13 @@ protected:
      * replacement. This does not include any transactions which are included
      * in BlockConnectedDisconnected either in block->vtx or in txnConflicted.
      *
+     * reason == REORG is not ordered with BlockConnected/BlockDisconnected!
+     *
+     * Note that in some rare cases (eg mempool limiting) a
+     * TransactionRemovedFromMempool event may fire with no corresponding
+     * TransactionAddedToMempool event for the same transaction.
+     * (TODO: remove this edge case)
+     *
      * Called on a background thread.
      */
     virtual void TransactionRemovedFromMempool(const CTransactionRef &ptx) {}
@@ -113,6 +120,12 @@ protected:
     virtual void BlockConnected(const std::shared_ptr<const CBlock> &block, const CBlockIndex *pindex, const std::vector<CTransactionRef> &txnConflicted) {}
     /**
      * Notifies listeners of a block being disconnected
+     *
+     * The ordering of BlockDisconnected and TransactionRemovedFromMempool
+     * (for transactions removed due to memory constraints or lock time/
+     * coinbase maturity changes during the disconnection/reorg) is undefined,
+     * and the TransactionRemovedFromMempool callbacks may occur *both* before
+     * and after BlockDisconnected/BlockConnected calls!
      *
      * Called on a background thread.
      */
@@ -129,7 +142,9 @@ protected:
      * an unclean shutdown.
      *
      * Provides a locator describing the best chain, which is likely useful for
-     * storing current state on disk in client DBs.
+     * storing current state on disk in client DBs. Will only ever contain
+     * blocks which were present at startup or already had the corresponding
+     * BlockConnected/UpdatedBlockTip callbacks complete.
      *
      * Called on a background thread.
      */
