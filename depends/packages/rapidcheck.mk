@@ -1,8 +1,8 @@
 package=rapidcheck
-$(package)_version=f5d3afa
-$(package)_download_path=https://bitcoin-10596.firebaseapp.com/depends
+$(package)_version=10fc0cb
+$(package)_download_path=https://github.com/MarcoFalke/rapidcheck/archive
 $(package)_file_name=$(package)-$($(package)_version).tar.gz
-$(package)_sha256_hash=78cdb8d0185b602e32e66f4e5d1a6ceec1f801dd9641b8a9456c386b1eaaf0e5
+$(package)_sha256_hash=9640926223c00af45bce4c7df8b756b5458a89b2ba74cfe3e404467f13ce26df
 
 define $(package)_config_cmds
   cmake -DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true .
