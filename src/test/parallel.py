@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+#
 # Copyright 2013 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,6 +22,7 @@ from functools import total_ordering
 import gzip
 import json
 import multiprocessing
+import configparser
 import optparse
 import os
 from pickle import HIGHEST_PROTOCOL as PICKLE_HIGHEST_PROTOCOL
@@ -557,48 +560,19 @@ class TestTimes(object):
       return times
 
 
-def find_tests(binaries, additional_args, options, times):
+def find_tests(test_list, binaries, additional_args, options, times):
   test_count = 0
   tasks = []
   for test_binary in binaries:
     command = [test_binary]
-    if options.gtest_also_run_disabled_tests:
-      command += ['--gtest_also_run_disabled_tests']
+    command += additional_args
 
-    list_command = command + ['--gtest_list_tests']
-    if options.gtest_filter != '':
-      list_command += ['--gtest_filter=' + options.gtest_filter]
-
-    try:
-      test_list = subprocess.check_output(list_command,
-                                          stderr=subprocess.STDOUT)
-    except subprocess.CalledProcessError as e:
-      sys.exit("%s: %s" % (test_binary, str(e)))
-
-    command += additional_args + ['--gtest_color=' + options.gtest_color]
-
-    test_group = ''
-    for line in test_list.split('\n'):
-      if not line.strip():
-        continue
-      if line[0] != " ":
-        # Remove comments for typed tests and strip whitespace.
-        test_group = line.split('#')[0].strip()
-        continue
-      # Remove comments for parameterized tests and strip whitespace.
-      line = line.split('#')[0].strip()
-      if not line:
-        continue
-
-      test_name = test_group + line
-      if not options.gtest_also_run_disabled_tests and 'DISABLED_' in test_name:
-        continue
-
+    for test_name in test_list:
       last_execution_time = times.get_test_time(test_binary, test_name)
       if options.failed and last_execution_time is not None:
         continue
 
-      test_command = command + ['--gtest_filter=' + test_name]
+      test_command = command + ['--run_test=' + test_name]
       if (test_count - options.shard_index) % options.shard_count == 0:
         for execution_number in range(options.repeat):
           tasks.append(Task(test_binary, test_name, test_command,
@@ -666,7 +640,7 @@ def execute_tasks(tasks, pool_size, task_manager,
       timeout.cancel()
 
 
-def default_options_parser():
+def default_options_parser(default_binary, file_test_list):
   parser = optparse.OptionParser(
       usage = 'usage: %prog [options] binary [binary ...] -- [additional args]')
 
@@ -708,6 +682,13 @@ def default_options_parser():
   parser.add_option('--serialize_test_cases', action='store_true',
                     default=False, help='Do not run tests from the same test '
                                         'case in parallel.')
+# Bitcoin Core specific options parsing: start
+  parser.add_option('-l', '--write_list', action='store_true',
+                    default=False, help='Write test list from the binary to '
+                                        '{} and exit.'.format(file_test_list))
+  parser.add_option('-b', '--binary', type=str, default=default_binary,
+                    help='The test binary (default: {})'.format(default_binary))
+# Bitcoin Core specific options parsing: end
   return parser
 
 
@@ -720,9 +701,21 @@ def main():
       additional_args = sys.argv[i+1:]
       sys.argv = sys.argv[:i]
       break
-
-  parser = default_options_parser()
+# Bitcoin Core specific options parsing: start
+  config = configparser.ConfigParser()
+  configfile = os.path.abspath(os.path.dirname(__file__)) + "/../../test/config.ini"
+  config.read_file(open(configfile))
+  env = config['environment']
+  FILE_TEST_LIST = os.path.join(env['SRCDIR'], 'src', 'test', 'test_list.txt')
+  DEFAULT_BINARY = os.path.join(env['BUILDDIR'],'src', 'test','test_bitcoin'+env['EXEEXT'])
+  parser = default_options_parser(DEFAULT_BINARY, FILE_TEST_LIST)
   (options, binaries) = parser.parse_args()
+  if options.write_list:
+      write_test_list(options.binary, FILE_TEST_LIST)
+      sys.exit(0)
+  test_list = read_test_list(FILE_TEST_LIST)
+  binaries = [options.binary]
+# Bitcoin Core specific options parsing: end
 
   if (options.output_dir is not None and
       not os.path.isdir(options.output_dir)):
@@ -784,7 +777,7 @@ def main():
   task_manager = TaskManager(times, logger, test_results, Task,
                              options.retry_failed, options.repeat + 1)
 
-  tasks = find_tests(binaries, additional_args, options, times)
+  tasks = find_tests(test_list, binaries, additional_args, options, times)
   logger.log_tasks(len(tasks))
   execute_tasks(tasks, options.workers, task_manager,
                 timeout, options.serialize_test_cases)
@@ -817,6 +810,55 @@ def main():
     return -signal.SIGINT
 
   return task_manager.global_exit_code
+
+# Bitcoin Core specific functions: start
+def read_test_list(file_test_list):
+    with open(file_test_list, encoding='ascii') as f:
+        test_lines = f.read()
+    return test_lines.splitlines()
+
+def transform_boost_output_to_test_list(output):
+
+    def rem_wc(string):
+        # Remove trailing wildcard
+        return string.strip()[:-1]
+
+    def test_depth(cur_line, prev_line):
+        if prev_line is None:
+            return None
+        def get_depth(line):
+            INDENT = '    '
+            depth = 0
+            while line.startswith(INDENT):
+                depth += 1
+                line = line[len(INDENT):]
+            return depth
+
+        return get_depth(prev_line)- get_depth(cur_line)
+
+    test_list = []
+    prefix_stack = []
+    previous_line = None
+    for line in output.splitlines():
+        depth = test_depth(line, previous_line)
+        if depth is not None and depth >= 0:
+            test_list.append('/'.join(prefix_stack))
+            prefix_stack = prefix_stack[:-(1+depth)]
+        prefix_stack.append(rem_wc(line))
+        previous_line = line
+    test_list.append('/'.join(prefix_stack))
+    return test_list
+
+def write_test_list(test_binary, output_file):
+    output_tmp = tempfile.SpooledTemporaryFile(max_size=2**16)
+    subprocess.check_call([test_binary, '--list_content'], stderr=output_tmp, timeout=1)
+    output_tmp.seek(0)
+    output = output_tmp.read().decode('ascii')
+
+    test_list = transform_boost_output_to_test_list(output)
+    with open(output_file, 'w', encoding='ascii') as f:
+        f.write('\n'.join(test_list))
+# Bitcoin Core specific functions: end
 
 if __name__ == "__main__":
   sys.exit(main())
