@@ -123,6 +123,10 @@ class TestNode():
             assert self.rpc_connected and self.rpc is not None, self._node_msg("Error: no RPC connection")
             return getattr(self.rpc, name)
 
+    @property
+    def using_gui(self):
+        return self.binary.endswith('-qt')
+
     def start(self, extra_args=None, *, stdout=None, stderr=None, **kwargs):
         """Start the node."""
         if extra_args is None:
@@ -255,8 +259,19 @@ class TestNode():
 
         Will throw if bitcoind starts without an error.
         Will throw if an expected_msg is provided and it does not match bitcoind's stdout."""
+
+        if self.using_gui:
+            # QT displays a warning box and the process hangs, preventing us
+            # from continuing the test.
+            self.log.info(
+                "Skipping assert_start_raises_init_error"
+                "(extra_args=%s, expected_msg=%s, match=%s, args=%s, kwargs=%s) "
+                "call due to QT use", extra_args, expected_msg, match, args, kwargs)
+            return
+
         with tempfile.NamedTemporaryFile(dir=self.stderr_dir, delete=False) as log_stderr, \
              tempfile.NamedTemporaryFile(dir=self.stdout_dir, delete=False) as log_stdout:
+
             try:
                 self.start(extra_args, stdout=log_stdout, stderr=log_stderr, *args, **kwargs)
                 self.wait_for_rpc_connection()
