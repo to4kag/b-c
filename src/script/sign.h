@@ -6,13 +6,13 @@
 #ifndef BITCOIN_SCRIPT_SIGN_H
 #define BITCOIN_SCRIPT_SIGN_H
 
+#include <primitives/templates.h>
 #include <script/interpreter.h>
 
 class CKey;
 class CKeyID;
 class CScript;
 class CScriptID;
-class CTransaction;
 
 struct CMutableTransaction;
 

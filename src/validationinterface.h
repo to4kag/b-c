@@ -6,12 +6,12 @@
 #ifndef BITCOIN_VALIDATIONINTERFACE_H
 #define BITCOIN_VALIDATIONINTERFACE_H
 
-#include <primitives/transaction.h> // CTransaction(Ref)
+#include <primitives/templates.h>
 
 #include <functional>
 #include <memory>
+#include <vector>
 
-class CBlock;
 class CBlockIndex;
 struct CBlockLocator;
 class CBlockIndex;

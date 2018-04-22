@@ -56,18 +56,21 @@ std::string CTxOut::ToString() const
 
 CMutableTransaction::CMutableTransaction() : nVersion(CTransaction::CURRENT_VERSION), nLockTime(0) {}
 CMutableTransaction::CMutableTransaction(const CTransaction& tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nLockTime(tx.nLockTime) {}
+CMutableTransaction::CMutableTransaction(const CBasicTransaction& tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nLockTime(tx.nLockTime) {}
 
 uint256 CMutableTransaction::GetHash() const
 {
     return SerializeHash(*this, SER_GETHASH, SERIALIZE_TRANSACTION_NO_WITNESS);
 }
 
-uint256 CTransaction::ComputeHash() const
+template <bool BASIC>
+uint256 Transaction<BASIC>::ComputeHash() const
 {
     return SerializeHash(*this, SER_GETHASH, SERIALIZE_TRANSACTION_NO_WITNESS);
 }
 
-uint256 CTransaction::GetWitnessHash() const
+template <>
+uint256 Transaction</*BASIC*/ false>::GetWitnessHash() const // not defined if BASIC
 {
     if (!HasWitness()) {
         return GetHash();
@@ -76,11 +79,12 @@ uint256 CTransaction::GetWitnessHash() const
 }
 
 /* For backward compatibility, the hash is initialized to 0. TODO: remove the need for this default constructor entirely. */
-CTransaction::CTransaction() : vin(), vout(), nVersion(CTransaction::CURRENT_VERSION), nLockTime(0), hash() {}
-CTransaction::CTransaction(const CMutableTransaction &tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash(ComputeHash()) {}
-CTransaction::CTransaction(CMutableTransaction &&tx) : vin(std::move(tx.vin)), vout(std::move(tx.vout)), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash(ComputeHash()) {}
+template<bool BASIC> Transaction<BASIC>::Transaction() : vin(), vout(), nVersion(Transaction<BASIC>::CURRENT_VERSION), nLockTime(0), hash() {}
+template<bool BASIC> Transaction<BASIC>::Transaction(const CMutableTransaction &tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash(ComputeHash()) {}
+template<bool BASIC> Transaction<BASIC>::Transaction(CMutableTransaction &&tx) : vin(std::move(tx.vin)), vout(std::move(tx.vout)), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash(ComputeHash()) {}
 
-CAmount CTransaction::GetValueOut() const
+template <bool BASIC>
+CAmount Transaction<BASIC>::GetValueOut() const
 {
     CAmount nValueOut = 0;
     for (const auto& tx_out : vout) {
@@ -91,12 +95,14 @@ CAmount CTransaction::GetValueOut() const
     return nValueOut;
 }
 
-unsigned int CTransaction::GetTotalSize() const
+template <bool BASIC>
+unsigned int Transaction<BASIC>::GetTotalSize() const
 {
     return ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION);
 }
 
-std::string CTransaction::ToString() const
+template <bool BASIC>
+std::string Transaction<BASIC>::ToString() const
 {
     std::string str;
     str += strprintf("CTransaction(hash=%s, ver=%d, vin.size=%u, vout.size=%u, nLockTime=%u)\n",
