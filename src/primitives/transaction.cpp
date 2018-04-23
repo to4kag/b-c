@@ -83,6 +83,13 @@ template<bool BASIC> Transaction<BASIC>::Transaction() : vin(), vout(), nVersion
 template<bool BASIC> Transaction<BASIC>::Transaction(const CMutableTransaction &tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash(ComputeHash()) {}
 template<bool BASIC> Transaction<BASIC>::Transaction(CMutableTransaction &&tx) : vin(std::move(tx.vin)), vout(std::move(tx.vout)), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash(ComputeHash()) {}
 
+template Transaction<false>::Transaction();
+template Transaction<true>::Transaction();
+template Transaction<false>::Transaction(const CMutableTransaction&);
+template Transaction<true>::Transaction(const CMutableTransaction&);
+template Transaction<false>::Transaction(CMutableTransaction&&);
+template Transaction<true>::Transaction(CMutableTransaction&&);
+
 template <bool BASIC>
 CAmount Transaction<BASIC>::GetValueOut() const
 {
@@ -95,11 +102,17 @@ CAmount Transaction<BASIC>::GetValueOut() const
     return nValueOut;
 }
 
+template CAmount Transaction<false>::GetValueOut() const;
+template CAmount Transaction<true>::GetValueOut() const;
+
 template <bool BASIC>
 unsigned int Transaction<BASIC>::GetTotalSize() const
 {
     return ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION);
 }
+
+template unsigned Transaction<false>::GetTotalSize() const;
+template unsigned Transaction<true>::GetTotalSize() const;
 
 template <bool BASIC>
 std::string Transaction<BASIC>::ToString() const
@@ -119,3 +132,5 @@ std::string Transaction<BASIC>::ToString() const
         str += "    " + tx_out.ToString() + "\n";
     return str;
 }
+template std::string Transaction<false>::ToString() const;
+template std::string Transaction<true>::ToString() const;
