@@ -6,7 +6,7 @@
 #define BITCOIN_CONSENSUS_TX_VERIFY_H
 
 #include <amount.h>
-#include <primitives/templates.h>
+#include <primitives/tx_types.h>
 
 #include <stdint.h>
 #include <vector>

@@ -6,7 +6,7 @@
 #ifndef BITCOIN_PRIMITIVES_BLOCK_H
 #define BITCOIN_PRIMITIVES_BLOCK_H
 
-#include <primitives/templates.h>
+#include <primitives/tx_types.h>
 #include <primitives/transaction.h>
 #include <serialize.h>
 #include <uint256.h>
@@ -120,9 +120,6 @@ public:
 
     std::string ToString() const;
 };
-
-template class Block<CTransactionRef>;
-template class Block<CBasicTransactionRef>;
 
 /** Describes a place in the block chain to another node such that if the
  * other node doesn't have the same branch, it can find a recent common trunk.

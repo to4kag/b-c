@@ -6,7 +6,7 @@
 #define BITCOIN_CORE_IO_H
 
 #include <amount.h>
-#include <primitives/templates.h>
+#include <primitives/tx_types.h>
 
 #include <string>
 #include <vector>

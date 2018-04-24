@@ -6,7 +6,7 @@
 #ifndef BITCOIN_VALIDATIONINTERFACE_H
 #define BITCOIN_VALIDATIONINTERFACE_H
 
-#include <primitives/templates.h>
+#include <primitives/tx_types.h>
 
 #include <functional>
 #include <memory>

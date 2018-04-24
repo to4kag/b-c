@@ -7,6 +7,7 @@
 #define BITCOIN_PRIMITIVES_TRANSACTION_H
 
 #include <stdint.h>
+#include <primitives/tx_types.h>
 #include <amount.h>
 #include <script/script.h>
 #include <serialize.h>
@@ -261,7 +262,7 @@ inline void SerializeTransaction(const TxType& tx, Stream& s) {
 /** The basic transaction that is broadcasted on the network and contained in
  * blocks.  A transaction can contain multiple inputs and outputs.
  */
-template <bool BASIC>
+template <TxType t>
 class Transaction
 {
 public:
@@ -312,12 +313,10 @@ public:
         return vin.empty() && vout.empty();
     }
 
-    const uint256& GetHash() const {
-        return hash;
-    }
+    const uint256& GetHash() const; 
 
     // Compute a hash that includes both transaction and witness data
-    uint256 GetWitnessHash() const; // never defined when BASIC
+    uint256 GetWitnessHash() const;
 
     // Return sum of txouts.
     CAmount GetValueOut() const;
@@ -358,8 +357,6 @@ public:
         return false;
     }
 };
-template class Transaction<false>;
-template class Transaction<true>;
 
 /** A mutable version of Transaction. */
 struct CMutableTransaction
@@ -370,8 +367,9 @@ struct CMutableTransaction
     uint32_t nLockTime;
 
     CMutableTransaction();
-    CMutableTransaction(const Transaction<true>& tx);
-    CMutableTransaction(const Transaction<false>& tx);
+    CMutableTransaction(const CPureTransaction& tx);
+    CMutableTransaction(const CBasicTransaction& tx);
+    CMutableTransaction(const CTransaction& tx);
 
     template <typename Stream>
     inline void Serialize(Stream& s) const {
@@ -410,14 +408,11 @@ struct CMutableTransaction
     }
 };
 
-using CTransaction = Transaction<false>;
-using CBasicTransaction = Transaction<true>;
-typedef std::shared_ptr<const CTransaction> CTransactionRef;
-typedef std::shared_ptr<const CBasicTransaction> CBasicTransactionRef;
-
-static inline CTransactionRef MakeTransactionRef() { return std::make_shared<const CTransaction>(); }
-template <typename Tx> static inline CTransactionRef MakeTransactionRef(Tx&& txIn) { return std::make_shared<const CTransaction>(std::forward<Tx>(txIn)); }
+static inline CPureTransactionRef MakePureTransactionRef() { return std::make_shared<const CPureTransaction>(); }
+template <typename Tx> static inline CPureTransactionRef MakePureTransactionRef(Tx&& txIn) { return std::make_shared<const CPureTransaction>(std::forward<Tx>(txIn)); }
 static inline CBasicTransactionRef MakeBasicTransactionRef() { return std::make_shared<const CBasicTransaction>(); }
 template <typename Tx> static inline CBasicTransactionRef MakeBasicTransactionRef(Tx&& txIn) { return std::make_shared<const CBasicTransaction>(std::forward<Tx>(txIn)); }
+static inline CTransactionRef MakeTransactionRef() { return std::make_shared<const CTransaction>(); }
+template <typename Tx> static inline CTransactionRef MakeTransactionRef(Tx&& txIn) { return std::make_shared<const CTransaction>(std::forward<Tx>(txIn)); }
 
 #endif // BITCOIN_PRIMITIVES_TRANSACTION_H

@@ -9,6 +9,10 @@
 #include <tinyformat.h>
 #include <utilstrencodings.h>
 
+template class Transaction<TxType::PURE>;
+template class Transaction<TxType::BASIC>;
+template class Transaction<TxType::FULL>;
+
 std::string COutPoint::ToString() const
 {
     return strprintf("COutPoint(%s, %u)", hash.ToString().substr(0,10), n);
@@ -55,43 +59,57 @@ std::string CTxOut::ToString() const
 }
 
 CMutableTransaction::CMutableTransaction() : nVersion(CTransaction::CURRENT_VERSION), nLockTime(0) {}
-CMutableTransaction::CMutableTransaction(const CTransaction& tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nLockTime(tx.nLockTime) {}
+CMutableTransaction::CMutableTransaction(const CPureTransaction& tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nLockTime(tx.nLockTime) {}
 CMutableTransaction::CMutableTransaction(const CBasicTransaction& tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nLockTime(tx.nLockTime) {}
+CMutableTransaction::CMutableTransaction(const CTransaction& tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nLockTime(tx.nLockTime) {}
 
 uint256 CMutableTransaction::GetHash() const
 {
     return SerializeHash(*this, SER_GETHASH, SERIALIZE_TRANSACTION_NO_WITNESS);
 }
 
-template <bool BASIC>
-uint256 Transaction<BASIC>::ComputeHash() const
+template <TxType t>
+uint256 Transaction<t>::ComputeHash() const
 {
     return SerializeHash(*this, SER_GETHASH, SERIALIZE_TRANSACTION_NO_WITNESS);
 }
 
-template <>
-uint256 Transaction</*BASIC*/ false>::GetWitnessHash() const // not defined if BASIC
+template <TxType t>
+const uint256&Transaction<t>::GetHash()const{return hash;}
+// GetHash not defined for PURE
+template const uint256 &Transaction<TxType::BASIC>::GetHash()const;
+template const uint256 &Transaction<TxType::FULL>::GetHash()const;
+
+template <TxType t>
+uint256 Transaction< t>::GetWitnessHash() const 
 {
     if (!HasWitness()) {
         return GetHash();
     }
     return SerializeHash(*this, SER_GETHASH, 0);
 }
+// GetWitnessHash not defined for PURE and BASIC
+template uint256 Transaction<TxType::FULL>::GetWitnessHash()const;
 
 /* For backward compatibility, the hash is initialized to 0. TODO: remove the need for this default constructor entirely. */
-template<bool BASIC> Transaction<BASIC>::Transaction() : vin(), vout(), nVersion(Transaction<BASIC>::CURRENT_VERSION), nLockTime(0), hash() {}
-template<bool BASIC> Transaction<BASIC>::Transaction(const CMutableTransaction &tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash(ComputeHash()) {}
-template<bool BASIC> Transaction<BASIC>::Transaction(CMutableTransaction &&tx) : vin(std::move(tx.vin)), vout(std::move(tx.vout)), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash(ComputeHash()) {}
+template<TxType t> Transaction<t>::Transaction() : vin(), vout(), nVersion(Transaction<t>::CURRENT_VERSION), nLockTime(0), hash() {}
+template<TxType t> Transaction<t>::Transaction(const CMutableTransaction &tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash(ComputeHash()) {}
+template<TxType t> Transaction<t>::Transaction(CMutableTransaction &&tx) : vin(std::move(tx.vin)), vout(std::move(tx.vout)), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash(ComputeHash()) {}
 
-template Transaction<false>::Transaction();
-template Transaction<true>::Transaction();
-template Transaction<false>::Transaction(const CMutableTransaction&);
-template Transaction<true>::Transaction(const CMutableTransaction&);
-template Transaction<false>::Transaction(CMutableTransaction&&);
-template Transaction<true>::Transaction(CMutableTransaction&&);
+template Transaction<TxType::PURE>::Transaction();
+template Transaction<TxType::BASIC>::Transaction();
+template Transaction<TxType::FULL>::Transaction();
 
-template <bool BASIC>
-CAmount Transaction<BASIC>::GetValueOut() const
+template Transaction<TxType::PURE>::Transaction(const CMutableTransaction&);
+template Transaction<TxType::BASIC>::Transaction(const CMutableTransaction&);
+template Transaction<TxType::FULL>::Transaction(const CMutableTransaction&);
+
+template Transaction<TxType::PURE>::Transaction(CMutableTransaction&&);
+template Transaction<TxType::BASIC>::Transaction(CMutableTransaction&&);
+template Transaction<TxType::FULL>::Transaction(CMutableTransaction&&);
+
+template <TxType t>
+CAmount Transaction<t>::GetValueOut() const
 {
     CAmount nValueOut = 0;
     for (const auto& tx_out : vout) {
@@ -102,20 +120,22 @@ CAmount Transaction<BASIC>::GetValueOut() const
     return nValueOut;
 }
 
-template CAmount Transaction<false>::GetValueOut() const;
-template CAmount Transaction<true>::GetValueOut() const;
+template CAmount Transaction<TxType::PURE>::GetValueOut() const;
+template CAmount Transaction<TxType::BASIC>::GetValueOut() const;
+template CAmount Transaction<TxType::FULL>::GetValueOut() const;
 
-template <bool BASIC>
-unsigned int Transaction<BASIC>::GetTotalSize() const
+template <TxType t>
+unsigned int Transaction<t>::GetTotalSize() const
 {
     return ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION);
 }
 
-template unsigned Transaction<false>::GetTotalSize() const;
-template unsigned Transaction<true>::GetTotalSize() const;
+template unsigned Transaction<TxType::PURE>::GetTotalSize() const;
+template unsigned Transaction<TxType::BASIC>::GetTotalSize() const;
+template unsigned Transaction<TxType::FULL>::GetTotalSize() const;
 
-template <bool BASIC>
-std::string Transaction<BASIC>::ToString() const
+template <TxType t>
+std::string Transaction<t>::ToString() const
 {
     std::string str;
     str += strprintf("CTransaction(hash=%s, ver=%d, vin.size=%u, vout.size=%u, nLockTime=%u)\n",
@@ -132,5 +152,7 @@ std::string Transaction<BASIC>::ToString() const
         str += "    " + tx_out.ToString() + "\n";
     return str;
 }
-template std::string Transaction<false>::ToString() const;
-template std::string Transaction<true>::ToString() const;
+
+//template std::string Transaction<TxType::PURE>::ToString() const;
+template std::string Transaction<TxType::BASIC>::ToString() const;
+template std::string Transaction<TxType::FULL>::ToString() const;

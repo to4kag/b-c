@@ -8,7 +8,7 @@
 #include <chainparamsbase.h>
 #include <fs.h>
 #include <key.h>
-#include <primitives/templates.h>
+#include <primitives/tx_types.h>
 #include <pubkey.h>
 #include <random.h>
 #include <scheduler.h>

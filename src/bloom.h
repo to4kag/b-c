@@ -5,7 +5,7 @@
 #ifndef BITCOIN_BLOOM_H
 #define BITCOIN_BLOOM_H
 
-#include <primitives/templates.h>
+#include <primitives/tx_types.h>
 #include <serialize.h>
 
 #include <vector>
