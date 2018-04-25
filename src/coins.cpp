@@ -95,7 +95,7 @@ void AddCoins(CCoinsViewCache& cache, const Transaction &tx, int nHeight, bool c
         cache.AddCoin(COutPoint(txid, i), Coin(tx.vout[i], nHeight, fCoinbase), overwrite);
     }
 }
-
+// Not instantiated for CPureTransaction, because that comes without GetHash
 template void AddCoins<CBasicTransaction> (CCoinsViewCache& cache, const CBasicTransaction &tx, int nHeight, bool check);
 template void AddCoins<CTransaction> (CCoinsViewCache& cache, const CTransaction &tx, int nHeight, bool check);
 

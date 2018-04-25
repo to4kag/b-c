@@ -21,86 +21,97 @@ BOOST_AUTO_TEST_CASE(MempoolRemoveTest)
     TestMemPoolEntryHelper entry;
     // Parent transaction with three children,
     // and three grand-children:
-    CMutableTransaction txParent;
-    txParent.vin.resize(1);
-    txParent.vin[0].scriptSig = CScript() << OP_11;
-    txParent.vout.resize(3);
+    CMutableTransaction txParentM;
+    txParentM.vin.resize(1);
+    txParentM.vin[0].scriptSig = CScript() << OP_11;
+    txParentM.vout.resize(3);
     for (int i = 0; i < 3; i++)
     {
-        txParent.vout[i].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
-        txParent.vout[i].nValue = 33000LL;
+        txParentM.vout[i].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
+        txParentM.vout[i].nValue = 33000LL;
     }
-    CMutableTransaction txChild[3];
+    const CTransactionRef txParent=MakeTransactionRef(txParentM);
+    CMutableTransaction txChildM[3];
     for (int i = 0; i < 3; i++)
     {
-        txChild[i].vin.resize(1);
-        txChild[i].vin[0].scriptSig = CScript() << OP_11;
-        txChild[i].vin[0].prevout.hash = txParent.GetHash();
-        txChild[i].vin[0].prevout.n = i;
-        txChild[i].vout.resize(1);
-        txChild[i].vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
-        txChild[i].vout[0].nValue = 11000LL;
+        txChildM[i].vin.resize(1);
+        txChildM[i].vin[0].scriptSig = CScript() << OP_11;
+        txChildM[i].vin[0].prevout.hash = txParent->GetHash();
+        txChildM[i].vin[0].prevout.n = i;
+        txChildM[i].vout.resize(1);
+        txChildM[i].vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
+        txChildM[i].vout[0].nValue = 11000LL;
     }
-    CMutableTransaction txGrandChild[3];
+    const std::array<const CTransactionRef, 3> txChild{
+    MakeTransactionRef(txChildM[0]),
+    MakeTransactionRef(txChildM[1]),
+    MakeTransactionRef(txChildM[2]),
+    };
+    CMutableTransaction txGrandChildM[3];
     for (int i = 0; i < 3; i++)
     {
-        txGrandChild[i].vin.resize(1);
-        txGrandChild[i].vin[0].scriptSig = CScript() << OP_11;
-        txGrandChild[i].vin[0].prevout.hash = txChild[i].GetHash();
-        txGrandChild[i].vin[0].prevout.n = 0;
-        txGrandChild[i].vout.resize(1);
-        txGrandChild[i].vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
-        txGrandChild[i].vout[0].nValue = 11000LL;
+        txGrandChildM[i].vin.resize(1);
+        txGrandChildM[i].vin[0].scriptSig = CScript() << OP_11;
+        txGrandChildM[i].vin[0].prevout.hash = txChild[i]->GetHash();
+        txGrandChildM[i].vin[0].prevout.n = 0;
+        txGrandChildM[i].vout.resize(1);
+        txGrandChildM[i].vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
+        txGrandChildM[i].vout[0].nValue = 11000LL;
     }
+    const std::array<const CTransactionRef, 3> txGrandChild{
+    MakeTransactionRef(txGrandChildM[0]),
+    MakeTransactionRef(txGrandChildM[1]),
+    MakeTransactionRef(txGrandChildM[2]),
+    };
 
 
     CTxMemPool testPool;
 
     // Nothing in pool, remove should do nothing:
     unsigned int poolSize = testPool.size();
-    testPool.removeRecursive(txParent);
+    testPool.removeRecursive(*txParent);
     BOOST_CHECK_EQUAL(testPool.size(), poolSize);
 
     // Just the parent:
-    testPool.addUnchecked(txParent.GetHash(), entry.FromTx(txParent));
+    testPool.addUnchecked(txParent->GetHash(), entry.FromTx(txParent));
     poolSize = testPool.size();
-    testPool.removeRecursive(txParent);
+    testPool.removeRecursive(*txParent);
     BOOST_CHECK_EQUAL(testPool.size(), poolSize - 1);
     
     // Parent, children, grandchildren:
-    testPool.addUnchecked(txParent.GetHash(), entry.FromTx(txParent));
+    testPool.addUnchecked(txParent->GetHash(), entry.FromTx(txParent));
     for (int i = 0; i < 3; i++)
     {
-        testPool.addUnchecked(txChild[i].GetHash(), entry.FromTx(txChild[i]));
-        testPool.addUnchecked(txGrandChild[i].GetHash(), entry.FromTx(txGrandChild[i]));
+        testPool.addUnchecked(txChild[i]->GetHash(), entry.FromTx(txChild[i]));
+        testPool.addUnchecked(txGrandChild[i]->GetHash(), entry.FromTx(txGrandChild[i]));
     }
     // Remove Child[0], GrandChild[0] should be removed:
     poolSize = testPool.size();
-    testPool.removeRecursive(txChild[0]);
+    testPool.removeRecursive(*txChild[0]);
     BOOST_CHECK_EQUAL(testPool.size(), poolSize - 2);
     // ... make sure grandchild and child are gone:
     poolSize = testPool.size();
-    testPool.removeRecursive(txGrandChild[0]);
+    testPool.removeRecursive(*txGrandChild[0]);
     BOOST_CHECK_EQUAL(testPool.size(), poolSize);
     poolSize = testPool.size();
-    testPool.removeRecursive(txChild[0]);
+    testPool.removeRecursive(*txChild[0]);
     BOOST_CHECK_EQUAL(testPool.size(), poolSize);
     // Remove parent, all children/grandchildren should go:
     poolSize = testPool.size();
-    testPool.removeRecursive(txParent);
+    testPool.removeRecursive(*txParent);
     BOOST_CHECK_EQUAL(testPool.size(), poolSize - 5);
     BOOST_CHECK_EQUAL(testPool.size(), 0U);
 
     // Add children and grandchildren, but NOT the parent (simulate the parent being in a block)
     for (int i = 0; i < 3; i++)
     {
-        testPool.addUnchecked(txChild[i].GetHash(), entry.FromTx(txChild[i]));
-        testPool.addUnchecked(txGrandChild[i].GetHash(), entry.FromTx(txGrandChild[i]));
+        testPool.addUnchecked(txChild[i]->GetHash(), entry.FromTx(txChild[i]));
+        testPool.addUnchecked(txGrandChild[i]->GetHash(), entry.FromTx(txGrandChild[i]));
     }
     // Now remove the parent, as might happen if a block-re-org occurs but the parent cannot be
     // put into the mempool (maybe because it is non-standard):
     poolSize = testPool.size();
-    testPool.removeRecursive(txParent);
+    testPool.removeRecursive(*txParent);
     BOOST_CHECK_EQUAL(testPool.size(), poolSize - 6);
     BOOST_CHECK_EQUAL(testPool.size(), 0U);
 }
@@ -307,7 +318,7 @@ BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest)
     tx2.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
     tx2.vout[0].nValue = 2 * COIN;
     pool.addUnchecked(tx2.GetHash(), entry.Fee(20000LL).FromTx(tx2));
-    uint64_t tx2Size = GetVirtualTransactionSize(tx2);
+    uint64_t tx2Size = GetVirtualTransactionSize(CTransaction{tx2});
 
     /* lowest fee */
     CMutableTransaction tx3 = CMutableTransaction();
@@ -356,7 +367,7 @@ BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest)
     tx6.vout.resize(1);
     tx6.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
     tx6.vout[0].nValue = 20 * COIN;
-    uint64_t tx6Size = GetVirtualTransactionSize(tx6);
+    uint64_t tx6Size = GetVirtualTransactionSize(CTransaction{tx6});
 
     pool.addUnchecked(tx6.GetHash(), entry.Fee(0LL).FromTx(tx6));
     BOOST_CHECK_EQUAL(pool.size(), 6U);
@@ -375,7 +386,7 @@ BOOST_AUTO_TEST_CASE(MempoolAncestorIndexingTest)
     tx7.vout.resize(1);
     tx7.vout[0].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
     tx7.vout[0].nValue = 10 * COIN;
-    uint64_t tx7Size = GetVirtualTransactionSize(tx7);
+    uint64_t tx7Size = GetVirtualTransactionSize(CTransaction{tx7});
 
     /* set the fee to just below tx2's feerate when including ancestor */
     CAmount fee = (20000/tx2Size)*(tx7Size + tx6Size) - 1;
@@ -462,12 +473,12 @@ BOOST_AUTO_TEST_CASE(MempoolSizeLimitTest)
     BOOST_CHECK(pool.exists(tx2.GetHash()));
     BOOST_CHECK(pool.exists(tx3.GetHash()));
 
-    pool.TrimToSize(GetVirtualTransactionSize(tx1)); // mempool is limited to tx1's size in memory usage, so nothing fits
+    pool.TrimToSize(GetVirtualTransactionSize(CTransaction{tx1})); // mempool is limited to tx1's size in memory usage, so nothing fits
     BOOST_CHECK(!pool.exists(tx1.GetHash()));
     BOOST_CHECK(!pool.exists(tx2.GetHash()));
     BOOST_CHECK(!pool.exists(tx3.GetHash()));
 
-    CFeeRate maxFeeRateRemoved(25000, GetVirtualTransactionSize(tx3) + GetVirtualTransactionSize(tx2));
+    CFeeRate maxFeeRateRemoved(25000, GetVirtualTransactionSize(CTransaction{tx3}) + GetVirtualTransactionSize(CTransaction{tx2}));
     BOOST_CHECK_EQUAL(pool.GetMinFee(1).GetFeePerK(), maxFeeRateRemoved.GetFeePerK() + 1000);
 
     CMutableTransaction tx4 = CMutableTransaction();

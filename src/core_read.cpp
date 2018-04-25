@@ -88,7 +88,7 @@ CScript ParseScript(const std::string& s)
 }
 
 // Check that all of the input and output scripts of a transaction contains valid opcodes
-static bool CheckTxScriptsSanity(const CBasicTransaction& tx)
+static bool CheckTxScriptsSanity(const CPureTransaction& tx)
 {
     // Check input scripts for non-coinbase txs
     if (!tx.IsCoinBase()) {
@@ -120,7 +120,7 @@ bool DecodeHexTx(CMutableTransaction& tx, const std::string& hex_tx, bool try_no
         CDataStream ssData(txData, SER_NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS);
         try {
             ssData >> tx;
-            if (ssData.eof() && (!try_witness || CheckTxScriptsSanity(tx))) {
+            if (ssData.eof() && (!try_witness || CheckTxScriptsSanity(CPureTransaction{tx}))) {
                 return true;
             }
         } catch (const std::exception&) {

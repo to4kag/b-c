@@ -1067,7 +1067,7 @@ bool CWallet::AddToWalletIfInvolvingMe(const TransactionRef& ptx, const CBlockIn
                 }
             }
 
-            CWalletTx wtx(this, MakeTransactionRef(*ptx));
+            CWalletTx wtx(this, MakeTransactionRef(CMutableTransaction{*ptx}));
 
             // Get merkle branch if transaction was found in a block
             if (pIndex != nullptr)
@@ -1078,6 +1078,8 @@ bool CWallet::AddToWalletIfInvolvingMe(const TransactionRef& ptx, const CBlockIn
     }
     return false;
 }
+template bool CWallet::AddToWalletIfInvolvingMe<CBasicTransactionRef>(const CBasicTransactionRef& ptx, const CBlockIndex* pIndex, int posInBlock, bool fUpdate);
+template bool CWallet::AddToWalletIfInvolvingMe<CTransactionRef>(const CTransactionRef& ptx, const CBlockIndex* pIndex, int posInBlock, bool fUpdate);
 
 bool CWallet::TransactionCanBeAbandoned(const uint256& hashTx) const
 {
@@ -1609,7 +1611,7 @@ int64_t CalculateMaximumSignedTxSize(const CTransaction &tx, const CWallet *wall
         // implies that we can sign for every input.
         return -1;
     }
-    return GetVirtualTransactionSize(txNew);
+    return GetVirtualTransactionSize(CTransaction{txNew});
 }
 
 int CalculateMaximumSignedInputSize(const CTxOut& txout, const CWallet* wallet)
@@ -2062,8 +2064,8 @@ bool CWalletTx::IsTrusted() const
 
 bool CWalletTx::IsEquivalentTo(const CWalletTx& _tx) const
 {
-        CMutableTransaction tx1 = *this->tx;
-        CMutableTransaction tx2 = *_tx.tx;
+        CMutableTransaction tx1 { *this->tx};
+        CMutableTransaction tx2 { *_tx.tx};
         for (auto& txin : tx1.vin) txin.scriptSig = CScript();
         for (auto& txin : tx2.vin) txin.scriptSig = CScript();
         return CBasicTransaction{tx1} == CBasicTransaction{tx2};
@@ -2919,7 +2921,7 @@ bool CWallet::CreateTransaction(const std::vector<CRecipient>& vecSend, CTransac
                     txNew.vin.push_back(CTxIn(coin.outpoint,CScript()));
                 }
 
-                nBytes = CalculateMaximumSignedTxSize(txNew, this);
+                nBytes = CalculateMaximumSignedTxSize(CTransaction{txNew}, this);
                 if (nBytes < 0) {
                     strFailReason = _("Signing transaction failed");
                     return false;

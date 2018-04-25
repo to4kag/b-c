@@ -14,7 +14,7 @@
 #include <array>
 
 // FIXME: Dedup with BuildCreditingTransaction in test/script_tests.cpp.
-static CMutableTransaction BuildCreditingTransaction(const CScript& scriptPubKey)
+static CTransaction BuildCreditingTransaction(const CScript& scriptPubKey)
 {
     CMutableTransaction txCredit;
     txCredit.nVersion = 1;
@@ -27,11 +27,11 @@ static CMutableTransaction BuildCreditingTransaction(const CScript& scriptPubKey
     txCredit.vout[0].scriptPubKey = scriptPubKey;
     txCredit.vout[0].nValue = 1;
 
-    return txCredit;
+    return CTransaction{txCredit};
 }
 
 // FIXME: Dedup with BuildSpendingTransaction in test/script_tests.cpp.
-static CMutableTransaction BuildSpendingTransaction(const CScript& scriptSig, const CMutableTransaction& txCredit)
+static CMutableTransaction BuildSpendingTransaction(const CScript& scriptSig, const CTransaction& txCredit)
 {
     CMutableTransaction txSpend;
     txSpend.nVersion = 1;
@@ -71,11 +71,11 @@ static void VerifyScriptBench(benchmark::State& state)
     CScript scriptPubKey = CScript() << witnessversion << ToByteVector(pubkeyHash);
     CScript scriptSig;
     CScript witScriptPubkey = CScript() << OP_DUP << OP_HASH160 << ToByteVector(pubkeyHash) << OP_EQUALVERIFY << OP_CHECKSIG;
-    const CMutableTransaction& txCredit = BuildCreditingTransaction(scriptPubKey);
+    const CTransaction& txCredit = BuildCreditingTransaction(scriptPubKey);
     CMutableTransaction txSpend = BuildSpendingTransaction(scriptSig, txCredit);
     CScriptWitness& witness = txSpend.vin[0].scriptWitness;
     witness.stack.emplace_back();
-    key.Sign(SignatureHash(witScriptPubkey, txSpend, 0, SIGHASH_ALL, txCredit.vout[0].nValue, SigVersion::WITNESS_V0), witness.stack.back(), 0);
+    key.Sign(SignatureHash(witScriptPubkey, CTransaction{txSpend}, 0, SIGHASH_ALL, txCredit.vout[0].nValue, SigVersion::WITNESS_V0), witness.stack.back(), 0);
     witness.stack.back().push_back(static_cast<unsigned char>(SIGHASH_ALL));
     witness.stack.push_back(ToByteVector(pubkey));
 

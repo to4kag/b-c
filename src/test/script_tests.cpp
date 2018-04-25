@@ -119,7 +119,7 @@ ScriptError_t ParseScriptError(const std::string &name)
 
 BOOST_FIXTURE_TEST_SUITE(script_tests, BasicTestingSetup)
 
-CMutableTransaction BuildCreditingTransaction(const CScript& scriptPubKey, int nValue = 0)
+CTransaction BuildCreditingTransaction(const CScript& scriptPubKey, int nValue = 0)
 {
     CMutableTransaction txCredit;
     txCredit.nVersion = 1;
@@ -132,10 +132,10 @@ CMutableTransaction BuildCreditingTransaction(const CScript& scriptPubKey, int n
     txCredit.vout[0].scriptPubKey = scriptPubKey;
     txCredit.vout[0].nValue = nValue;
 
-    return txCredit;
+    return CTransaction{txCredit};
 }
 
-CMutableTransaction BuildSpendingTransaction(const CScript& scriptSig, const CScriptWitness& scriptWitness, const CMutableTransaction& txCredit)
+CMutableTransaction BuildSpendingTransaction(const CScript& scriptSig, const CScriptWitness& scriptWitness, const CTransaction& txCredit)
 {
     CMutableTransaction txSpend;
     txSpend.nVersion = 1;
@@ -1175,7 +1175,7 @@ BOOST_AUTO_TEST_CASE(script_combineSigs)
         keystore.AddKey(key);
     }
 
-    CMutableTransaction txFrom = BuildCreditingTransaction(GetScriptForDestination(keys[0].GetPubKey().GetID()));
+    const CTransaction txFrom { BuildCreditingTransaction(GetScriptForDestination(keys[0].GetPubKey().GetID()))};
     CMutableTransaction txTo = BuildSpendingTransaction(CScript(), CScriptWitness(), txFrom);
     CScript& scriptPubKey = txFrom.vout[0].scriptPubKey;
     CScript& scriptSig = txTo.vin[0].scriptSig;

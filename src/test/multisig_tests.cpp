@@ -19,9 +19,9 @@
 BOOST_FIXTURE_TEST_SUITE(multisig_tests, BasicTestingSetup)
 
 CScript
-sign_multisig(const CScript& scriptPubKey, const std::vector<CKey>& keys, const CTransaction& transaction, int whichIn)
+sign_multisig(const CScript& scriptPubKey, const std::vector<CKey>& keys, const CMutableTransaction& tx, int whichIn)
 {
-    uint256 hash = SignatureHash(scriptPubKey, transaction, whichIn, SIGHASH_ALL, 0, SigVersion::BASE);
+    uint256 hash = SignatureHash(scriptPubKey, CTransaction{tx}, whichIn, SIGHASH_ALL, 0, SigVersion::BASE);
 
     CScript result;
     result << OP_0; // CHECKMULTISIG bug workaround
@@ -209,7 +209,7 @@ BOOST_AUTO_TEST_CASE(multisig_Sign)
 
     for (int i = 0; i < 3; i++)
     {
-        BOOST_CHECK_MESSAGE(SignSignature(keystore, txFrom, txTo[i], 0, SIGHASH_ALL), strprintf("SignSignature %d", i));
+        BOOST_CHECK_MESSAGE(SignSignature(keystore, CTransaction{txFrom}, txTo[i], 0, SIGHASH_ALL), strprintf("SignSignature %d", i));
     }
 }
 

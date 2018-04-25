@@ -74,12 +74,13 @@ static void CCoinsCaching(benchmark::State& state)
     t1.vout.resize(2);
     t1.vout[0].nValue = 90 * CENT;
     t1.vout[0].scriptPubKey << OP_1;
+    const CTransaction tx1{t1};
 
     // Benchmark.
     while (state.KeepRunning()) {
-        bool success = AreInputsStandard(t1, coins);
+        bool success = AreInputsStandard(tx1, coins);
         assert(success);
-        CAmount value = coins.GetValueIn(t1);
+        CAmount value = coins.GetValueIn(tx1);
         assert(value == (50 + 21 + 22) * CENT);
     }
 }

@@ -3429,7 +3429,7 @@ UniValue fundrawtransaction(const JSONRPCRequest& request)
     }
 
     UniValue result(UniValue::VOBJ);
-    result.pushKV("hex", EncodeHexTx(tx));
+    result.pushKV("hex", EncodeHexTx(CTransaction{tx}));
     result.pushKV("changepos", changePosition);
     result.pushKV("fee", ValueFromAmount(nFeeOut));
 

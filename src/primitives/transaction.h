@@ -296,8 +296,8 @@ public:
     Transaction();
 
     /** Convert a CMutableTransaction into a Transaction. */
-    Transaction(const CMutableTransaction& tx);
-    Transaction(CMutableTransaction&& tx);
+    explicit Transaction(const CMutableTransaction& tx);
+    explicit Transaction(CMutableTransaction&& tx);
 
     template <typename Stream>
     inline void Serialize(Stream& s) const {
@@ -337,12 +337,12 @@ public:
 
     friend bool operator==(const Transaction& a, const Transaction& b)
     {
-        return a.hash == b.hash;
+        return a.GetHash() == b.GetHash();
     }
 
     friend bool operator!=(const Transaction& a, const Transaction& b)
     {
-        return a.hash != b.hash;
+        return !(a==b);
     }
 
     std::string ToString() const;
@@ -367,9 +367,9 @@ struct CMutableTransaction
     uint32_t nLockTime;
 
     CMutableTransaction();
-    CMutableTransaction(const CPureTransaction& tx);
-    CMutableTransaction(const CBasicTransaction& tx);
-    CMutableTransaction(const CTransaction& tx);
+    explicit CMutableTransaction(const CPureTransaction& tx);
+    explicit CMutableTransaction(const CBasicTransaction& tx);
+    explicit CMutableTransaction(const CTransaction& tx);
 
     template <typename Stream>
     inline void Serialize(Stream& s) const {

@@ -29,7 +29,7 @@ static inline size_t RecursiveDynamicUsage(const CTxOut& out) {
     return RecursiveDynamicUsage(out.scriptPubKey);
 }
 
-static inline size_t RecursiveDynamicUsage(const CBasicTransaction& tx) {
+static inline size_t RecursiveDynamicUsage(const CTransaction& tx) {
     size_t mem = memusage::DynamicUsage(tx.vin) + memusage::DynamicUsage(tx.vout);
     for (std::vector<CTxIn>::const_iterator it = tx.vin.begin(); it != tx.vin.end(); it++) {
         mem += RecursiveDynamicUsage(*it);
@@ -51,7 +51,7 @@ static inline size_t RecursiveDynamicUsage(const CMutableTransaction& tx) {
     return mem;
 }
 
-static inline size_t RecursiveDynamicUsage(const CBasicBlock& block) {
+static inline size_t RecursiveDynamicUsage(const CBlock& block) {
     size_t mem = memusage::DynamicUsage(block.vtx);
     for (const auto& tx : block.vtx) {
         mem += memusage::DynamicUsage(tx) + RecursiveDynamicUsage(*tx);
