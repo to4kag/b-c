@@ -159,7 +159,7 @@ void TestPackageSelection(const CChainParams& chainparams, CScript scriptPubKey,
     // Test that packages above the min relay fee do get included, even if one
     // of the transactions is below the min relay fee
     // Remove the low fee transaction and replace with a higher fee transaction
-    mempool.removeRecursive(CTransaction{tx});
+    mempool.removeRecursive(tx);
     tx.vout[0].nValue -= 2; // Now we should be just over the min relay fee
     hashLowFeeTx = tx.GetHash();
     mempool.addUnchecked(hashLowFeeTx, entry.Fee(feeToUse+2).FromTx(tx));
@@ -438,24 +438,24 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     tx.vout[0].nValue = BLOCKSUBSIDY-HIGHFEE;
     tx.vout[0].scriptPubKey = CScript() << OP_1;
     tx.nLockTime = 0;
-    CTransactionRef txr=MakeTransactionRef(tx);
-    mempool.addUnchecked(txr->GetHash(), entry.Fee(HIGHFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(txr));
-    BOOST_CHECK(CheckFinalTx(*txr, flags)); // Locktime passes
-    BOOST_CHECK(!TestSequenceLocks(*txr, flags)); // Sequence locks fail
-    BOOST_CHECK(SequenceLocks(*txr, flags, &prevheights, CreateBlockIndex(chainActive.Tip()->nHeight + 2))); // Sequence locks pass on 2nd block
+    hash = tx.GetHash();
+    mempool.addUnchecked(hash, entry.Fee(HIGHFEE).Time(GetTime()).SpendsCoinbase(true).FromTx(tx));
+    BOOST_CHECK(CheckFinalTx(tx, flags)); // Locktime passes
+    BOOST_CHECK(!TestSequenceLocks(tx, flags)); // Sequence locks fail
+    BOOST_CHECK(SequenceLocks(tx, flags, &prevheights, CreateBlockIndex(chainActive.Tip()->nHeight + 2))); // Sequence locks pass on 2nd block
 
     // relative time locked
     tx.vin[0].prevout.hash = txFirst[1]->GetHash();
     tx.vin[0].nSequence = CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG | (((chainActive.Tip()->GetMedianTimePast()+1-chainActive[1]->GetMedianTimePast()) >> CTxIn::SEQUENCE_LOCKTIME_GRANULARITY) + 1); // txFirst[1] is the 3rd block
     prevheights[0] = baseheight + 2;
-    txr = MakeTransactionRef(tx);
-    mempool.addUnchecked(txr->GetHash(), entry.Time(GetTime()).FromTx(txr));
-    BOOST_CHECK(CheckFinalTx(*txr, flags)); // Locktime passes
-    BOOST_CHECK(!TestSequenceLocks(*txr, flags)); // Sequence locks fail
+    hash = tx.GetHash();
+    mempool.addUnchecked(hash, entry.Time(GetTime()).FromTx(tx));
+    BOOST_CHECK(CheckFinalTx(tx, flags)); // Locktime passes
+    BOOST_CHECK(!TestSequenceLocks(tx, flags)); // Sequence locks fail
 
     for (int i = 0; i < CBlockIndex::nMedianTimeSpan; i++)
         chainActive.Tip()->GetAncestor(chainActive.Tip()->nHeight - i)->nTime += 512; //Trick the MedianTimePast
-    BOOST_CHECK(SequenceLocks(*txr, flags, &prevheights, CreateBlockIndex(chainActive.Tip()->nHeight + 1))); // Sequence locks pass 512 seconds later
+    BOOST_CHECK(SequenceLocks(tx, flags, &prevheights, CreateBlockIndex(chainActive.Tip()->nHeight + 1))); // Sequence locks pass 512 seconds later
     for (int i = 0; i < CBlockIndex::nMedianTimeSpan; i++)
         chainActive.Tip()->GetAncestor(chainActive.Tip()->nHeight - i)->nTime -= 512; //undo tricked MTP
 
@@ -464,36 +464,36 @@ BOOST_AUTO_TEST_CASE(CreateNewBlock_validity)
     tx.vin[0].nSequence = CTxIn::SEQUENCE_FINAL - 1;
     prevheights[0] = baseheight + 3;
     tx.nLockTime = chainActive.Tip()->nHeight + 1;
-    txr = MakeTransactionRef(tx);
-    mempool.addUnchecked(txr->GetHash(), entry.Time(GetTime()).FromTx(txr));
-    BOOST_CHECK(!CheckFinalTx(*txr, flags)); // Locktime fails
-    BOOST_CHECK(TestSequenceLocks(*txr, flags)); // Sequence locks pass
-    BOOST_CHECK(IsFinalTx(*txr, chainActive.Tip()->nHeight + 2, chainActive.Tip()->GetMedianTimePast())); // Locktime passes on 2nd block
+    hash = tx.GetHash();
+    mempool.addUnchecked(hash, entry.Time(GetTime()).FromTx(tx));
+    BOOST_CHECK(!CheckFinalTx(tx, flags)); // Locktime fails
+    BOOST_CHECK(TestSequenceLocks(tx, flags)); // Sequence locks pass
+    BOOST_CHECK(IsFinalTx(tx, chainActive.Tip()->nHeight + 2, chainActive.Tip()->GetMedianTimePast())); // Locktime passes on 2nd block
 
     // absolute time locked
     tx.vin[0].prevout.hash = txFirst[3]->GetHash();
     tx.nLockTime = chainActive.Tip()->GetMedianTimePast();
     prevheights.resize(1);
     prevheights[0] = baseheight + 4;
-    txr = MakeTransactionRef(tx);
-    mempool.addUnchecked(txr->GetHash(), entry.Time(GetTime()).FromTx(txr));
-    BOOST_CHECK(!CheckFinalTx(*txr, flags)); // Locktime fails
-    BOOST_CHECK(TestSequenceLocks(*txr, flags)); // Sequence locks pass
-    BOOST_CHECK(IsFinalTx(*txr, chainActive.Tip()->nHeight + 2, chainActive.Tip()->GetMedianTimePast() + 1)); // Locktime passes 1 second later
+    hash = tx.GetHash();
+    mempool.addUnchecked(hash, entry.Time(GetTime()).FromTx(tx));
+    BOOST_CHECK(!CheckFinalTx(tx, flags)); // Locktime fails
+    BOOST_CHECK(TestSequenceLocks(tx, flags)); // Sequence locks pass
+    BOOST_CHECK(IsFinalTx(tx, chainActive.Tip()->nHeight + 2, chainActive.Tip()->GetMedianTimePast() + 1)); // Locktime passes 1 second later
 
     // mempool-dependent transactions (not added)
     tx.vin[0].prevout.hash = hash;
     prevheights[0] = chainActive.Tip()->nHeight + 1;
     tx.nLockTime = 0;
     tx.vin[0].nSequence = 0;
-    BOOST_CHECK(CheckFinalTx(CTransaction{tx}, flags)); // Locktime passes
-    BOOST_CHECK(TestSequenceLocks(CTransaction{tx}, flags)); // Sequence locks pass
+    BOOST_CHECK(CheckFinalTx(tx, flags)); // Locktime passes
+    BOOST_CHECK(TestSequenceLocks(tx, flags)); // Sequence locks pass
     tx.vin[0].nSequence = 1;
-    BOOST_CHECK(!TestSequenceLocks(CTransaction{tx}, flags)); // Sequence locks fail
+    BOOST_CHECK(!TestSequenceLocks(tx, flags)); // Sequence locks fail
     tx.vin[0].nSequence = CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG;
-    BOOST_CHECK(TestSequenceLocks(CTransaction{tx}, flags)); // Sequence locks pass
+    BOOST_CHECK(TestSequenceLocks(tx, flags)); // Sequence locks pass
     tx.vin[0].nSequence = CTxIn::SEQUENCE_LOCKTIME_TYPE_FLAG | 1;
-    BOOST_CHECK(!TestSequenceLocks(CTransaction{tx}, flags)); // Sequence locks fail
+    BOOST_CHECK(!TestSequenceLocks(tx, flags)); // Sequence locks fail
 
     BOOST_CHECK(pblocktemplate = AssemblerForTest(chainparams).CreateNewBlock(scriptPubKey));
 

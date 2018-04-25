@@ -76,7 +76,7 @@ uint256 Transaction<t>::ComputeHash() const
 
 template <TxType t>
 const uint256&Transaction<t>::GetHash()const{return hash;}
-// GetHash not defined for PURE
+// GetHash not instantiated for PURE
 template const uint256 &Transaction<TxType::BASIC>::GetHash()const;
 template const uint256 &Transaction<TxType::FULL>::GetHash()const;
 
@@ -88,25 +88,24 @@ uint256 Transaction< t>::GetWitnessHash() const
     }
     return SerializeHash(*this, SER_GETHASH, 0);
 }
-// GetWitnessHash not defined for PURE and BASIC
+// GetWitnessHash not instantiated for PURE and BASIC
 template uint256 Transaction<TxType::FULL>::GetWitnessHash()const;
 
 /* For backward compatibility, the hash is initialized to 0. TODO: remove the need for this default constructor entirely. */
 template<TxType t> Transaction<t>::Transaction() : vin(), vout(), nVersion(Transaction<t>::CURRENT_VERSION), nLockTime(0), hash() {}
-template<TxType t> Transaction<t>::Transaction(const CMutableTransaction &tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash(ComputeHash()) {}
-template<TxType t> Transaction<t>::Transaction(CMutableTransaction &&tx) : vin(std::move(tx.vin)), vout(std::move(tx.vout)), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash(ComputeHash()) {}
 
 template Transaction<TxType::PURE>::Transaction();
 template Transaction<TxType::BASIC>::Transaction();
 template Transaction<TxType::FULL>::Transaction();
 
-template Transaction<TxType::PURE>::Transaction(const CMutableTransaction&);
-template Transaction<TxType::BASIC>::Transaction(const CMutableTransaction&);
-template Transaction<TxType::FULL>::Transaction(const CMutableTransaction&);
+template<> Transaction<TxType::PURE>::Transaction(const CMutableTransaction &tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash{} {}
+template<> Transaction<TxType::PURE>::Transaction(CMutableTransaction &&tx) : vin(std::move(tx.vin)), vout(std::move(tx.vout)), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash{} {}
 
-template Transaction<TxType::PURE>::Transaction(CMutableTransaction&&);
-template Transaction<TxType::BASIC>::Transaction(CMutableTransaction&&);
-template Transaction<TxType::FULL>::Transaction(CMutableTransaction&&);
+template<> Transaction<TxType::BASIC>::Transaction(const CMutableTransaction &tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash(ComputeHash()) {}
+template<> Transaction<TxType::BASIC>::Transaction(CMutableTransaction &&tx) : vin(std::move(tx.vin)), vout(std::move(tx.vout)), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash(ComputeHash()) {}
+
+template<> Transaction<TxType::FULL>::Transaction(const CMutableTransaction &tx) : vin(tx.vin), vout(tx.vout), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash(ComputeHash()) {}
+template<> Transaction<TxType::FULL>::Transaction(CMutableTransaction &&tx) : vin(std::move(tx.vin)), vout(std::move(tx.vout)), nVersion(tx.nVersion), nLockTime(tx.nLockTime), hash(ComputeHash()) {}
 
 template <TxType t>
 CAmount Transaction<t>::GetValueOut() const

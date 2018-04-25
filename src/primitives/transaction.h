@@ -296,8 +296,8 @@ public:
     Transaction();
 
     /** Convert a CMutableTransaction into a Transaction. */
-    explicit Transaction(const CMutableTransaction& tx);
-    explicit Transaction(CMutableTransaction&& tx);
+    Transaction(const CMutableTransaction& tx);
+    Transaction(CMutableTransaction&& tx);
 
     template <typename Stream>
     inline void Serialize(Stream& s) const {
