@@ -313,7 +313,9 @@ public:
         return vin.empty() && vout.empty();
     }
 
-    const uint256& GetHash() const; 
+    const uint256& GetHash() const {
+static_assert(t==TxType::BASIC || t==TxType::FULL,"This type doesn't support hash");
+return hash;}
 
     // Compute a hash that includes both transaction and witness data
     uint256 GetWitnessHash() const;

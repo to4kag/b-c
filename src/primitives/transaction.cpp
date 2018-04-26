@@ -9,10 +9,6 @@
 #include <tinyformat.h>
 #include <utilstrencodings.h>
 
-template class Transaction<TxType::PURE>;
-template class Transaction<TxType::BASIC>;
-template class Transaction<TxType::FULL>;
-
 std::string COutPoint::ToString() const
 {
     return strprintf("COutPoint(%s, %u)", hash.ToString().substr(0,10), n);
@@ -71,18 +67,14 @@ uint256 CMutableTransaction::GetHash() const
 template <TxType t>
 uint256 Transaction<t>::ComputeHash() const
 {
+static_assert(t==TxType::BASIC || t==TxType::FULL,"This type doesn't support computing the hash");
     return SerializeHash(*this, SER_GETHASH, SERIALIZE_TRANSACTION_NO_WITNESS);
 }
 
 template <TxType t>
-const uint256&Transaction<t>::GetHash()const{return hash;}
-// GetHash not instantiated for PURE
-template const uint256 &Transaction<TxType::BASIC>::GetHash()const;
-template const uint256 &Transaction<TxType::FULL>::GetHash()const;
-
-template <TxType t>
 uint256 Transaction< t>::GetWitnessHash() const 
 {
+static_assert(t==TxType::FULL,"This type doesn't support witness hash");
     if (!HasWitness()) {
         return GetHash();
     }
@@ -93,7 +85,6 @@ template uint256 Transaction<TxType::FULL>::GetWitnessHash()const;
 
 /* For backward compatibility, the hash is initialized to 0. TODO: remove the need for this default constructor entirely. */
 template<TxType t> Transaction<t>::Transaction() : vin(), vout(), nVersion(Transaction<t>::CURRENT_VERSION), nLockTime(0), hash() {}
-
 template Transaction<TxType::PURE>::Transaction();
 template Transaction<TxType::BASIC>::Transaction();
 template Transaction<TxType::FULL>::Transaction();
@@ -118,7 +109,6 @@ CAmount Transaction<t>::GetValueOut() const
     }
     return nValueOut;
 }
-
 template CAmount Transaction<TxType::PURE>::GetValueOut() const;
 template CAmount Transaction<TxType::BASIC>::GetValueOut() const;
 template CAmount Transaction<TxType::FULL>::GetValueOut() const;
@@ -128,7 +118,6 @@ unsigned int Transaction<t>::GetTotalSize() const
 {
     return ::GetSerializeSize(*this, SER_NETWORK, PROTOCOL_VERSION);
 }
-
 template unsigned Transaction<TxType::PURE>::GetTotalSize() const;
 template unsigned Transaction<TxType::BASIC>::GetTotalSize() const;
 template unsigned Transaction<TxType::FULL>::GetTotalSize() const;
@@ -151,7 +140,5 @@ std::string Transaction<t>::ToString() const
         str += "    " + tx_out.ToString() + "\n";
     return str;
 }
-
-//template std::string Transaction<TxType::PURE>::ToString() const;
 template std::string Transaction<TxType::BASIC>::ToString() const;
 template std::string Transaction<TxType::FULL>::ToString() const;

@@ -10,10 +10,6 @@
 #include <utilstrencodings.h>
 #include <crypto/common.h>
 
-template class Block<CPureTransactionRef>;
-template class Block<CBasicTransactionRef>;
-template class Block<CTransactionRef>;
-
 uint256 CBlockHeader::GetHash() const
 {
     return SerializeHash(*this);
@@ -35,3 +31,5 @@ std::string Block<TxRef>::ToString() const
     }
     return s.str();
 }
+template std::string Block<CBasicTransactionRef>::ToString()const;
+template std::string Block<CTransactionRef>::ToString()const;
