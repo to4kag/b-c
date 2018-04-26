@@ -1130,8 +1130,9 @@ bool ReadBlockFromDisk(Block& block, const CDiskBlockPos& pos, const Consensus::
 
     return true;
 }
-template bool ReadBlockFromDisk<CBlock>(CBlock& block, const CDiskBlockPos& pos, const Consensus::Params& consensusParams);
+template bool ReadBlockFromDisk<CPureBlock>(CPureBlock& block, const CDiskBlockPos& pos, const Consensus::Params& consensusParams);
 template bool ReadBlockFromDisk<CBasicBlock>(CBasicBlock& block, const CDiskBlockPos& pos, const Consensus::Params& consensusParams);
+template bool ReadBlockFromDisk<CBlock>(CBlock& block, const CDiskBlockPos& pos, const Consensus::Params& consensusParams);
 
 template <typename Block>
 bool ReadBlockFromDisk(Block& block, const CBlockIndex* pindex, const Consensus::Params& consensusParams)
@@ -1149,8 +1150,9 @@ bool ReadBlockFromDisk(Block& block, const CBlockIndex* pindex, const Consensus:
                 pindex->ToString(), pindex->GetBlockPos().ToString());
     return true;
 }
-template bool ReadBlockFromDisk<CBlock>(CBlock& block, const CBlockIndex* pindex, const Consensus::Params& consensusParams);
+template bool ReadBlockFromDisk<CPureBlock>(CPureBlock& block, const CBlockIndex* pindex, const Consensus::Params& consensusParams);
 template bool ReadBlockFromDisk<CBasicBlock>(CBasicBlock& block, const CBlockIndex* pindex, const Consensus::Params& consensusParams);
+template bool ReadBlockFromDisk<CBlock>(CBlock& block, const CBlockIndex* pindex, const Consensus::Params& consensusParams);
 
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
 {
