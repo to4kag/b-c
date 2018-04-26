@@ -1063,8 +1063,8 @@ bool GetTransaction(const uint256& hash, CTransactionRef& txOut, const Consensus
         if (ReadBlockFromDisk(block, pindexSlow, consensusParams)) {
             for (const auto& tx : block.vtx) {
                 if (tx->GetHash() == hash) {
-                // "Upgrade this basic tx to a "full" tx
-                    txOut = MakeTransactionRef( CMutableTransaction{*tx});
+                    // "Upgrade this basic tx to a "full" tx
+                    txOut = MakeTransactionRef(CMutableTransaction{*tx});
                     hashBlock = pindexSlow->GetBlockHash();
                     return true;
                 }

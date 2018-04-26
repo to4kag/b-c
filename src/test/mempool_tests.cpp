@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE(MempoolRemoveTest)
         txParentM.vout[i].scriptPubKey = CScript() << OP_11 << OP_EQUAL;
         txParentM.vout[i].nValue = 33000LL;
     }
-    const CTransactionRef txParent=MakeTransactionRef(txParentM);
+    const CTransactionRef txParent = MakeTransactionRef(txParentM);
     CMutableTransaction txChildM[3];
     for (int i = 0; i < 3; i++)
     {
@@ -43,9 +43,9 @@ BOOST_AUTO_TEST_CASE(MempoolRemoveTest)
         txChildM[i].vout[0].nValue = 11000LL;
     }
     const std::array<const CTransactionRef, 3> txChild{
-    MakeTransactionRef(txChildM[0]),
-    MakeTransactionRef(txChildM[1]),
-    MakeTransactionRef(txChildM[2]),
+        MakeTransactionRef(txChildM[0]),
+        MakeTransactionRef(txChildM[1]),
+        MakeTransactionRef(txChildM[2]),
     };
     CMutableTransaction txGrandChildM[3];
     for (int i = 0; i < 3; i++)
@@ -59,9 +59,9 @@ BOOST_AUTO_TEST_CASE(MempoolRemoveTest)
         txGrandChildM[i].vout[0].nValue = 11000LL;
     }
     const std::array<const CTransactionRef, 3> txGrandChild{
-    MakeTransactionRef(txGrandChildM[0]),
-    MakeTransactionRef(txGrandChildM[1]),
-    MakeTransactionRef(txGrandChildM[2]),
+        MakeTransactionRef(txGrandChildM[0]),
+        MakeTransactionRef(txGrandChildM[1]),
+        MakeTransactionRef(txGrandChildM[2]),
     };
 
 

@@ -67,21 +67,21 @@ uint256 CMutableTransaction::GetHash() const
 template <TxType t>
 uint256 Transaction<t>::ComputeHash() const
 {
-static_assert(t==TxType::BASIC || t==TxType::FULL,"This type doesn't support computing the hash");
+    static_assert(t == TxType::BASIC || t == TxType::FULL, "This type doesn't support computing the hash");
     return SerializeHash(*this, SER_GETHASH, SERIALIZE_TRANSACTION_NO_WITNESS);
 }
 
 template <TxType t>
-uint256 Transaction< t>::GetWitnessHash() const 
+uint256 Transaction<t>::GetWitnessHash() const
 {
-static_assert(t==TxType::FULL,"This type doesn't support witness hash");
+    static_assert(t == TxType::FULL, "This type doesn't support witness hash");
     if (!HasWitness()) {
         return GetHash();
     }
     return SerializeHash(*this, SER_GETHASH, 0);
 }
 // GetWitnessHash not instantiated for PURE and BASIC
-template uint256 Transaction<TxType::FULL>::GetWitnessHash()const;
+template uint256 Transaction<TxType::FULL>::GetWitnessHash() const;
 
 /* For backward compatibility, the hash is initialized to 0. TODO: remove the need for this default constructor entirely. */
 template<TxType t> Transaction<t>::Transaction() : vin(), vout(), nVersion(Transaction<t>::CURRENT_VERSION), nLockTime(0), hash() {}

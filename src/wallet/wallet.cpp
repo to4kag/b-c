@@ -1382,8 +1382,8 @@ bool CWallet::IsMine(const Transaction& tx) const
             return true;
     return false;
 }
-template bool CWallet::IsMine<CTransaction>(const CTransaction&tx)const;
-template bool CWallet::IsMine<CBasicTransaction>(const CBasicTransaction&tx)const;
+template bool CWallet::IsMine<CTransaction>(const CTransaction& tx) const;
+template bool CWallet::IsMine<CBasicTransaction>(const CBasicTransaction& tx) const;
 
 template <typename Transaction>
 bool CWallet::IsFromMe(const Transaction& tx) const
@@ -2064,11 +2064,13 @@ bool CWalletTx::IsTrusted() const
 
 bool CWalletTx::IsEquivalentTo(const CWalletTx& _tx) const
 {
-        CMutableTransaction tx1 { *this->tx};
-        CMutableTransaction tx2 { *_tx.tx};
-        for (auto& txin : tx1.vin) txin.scriptSig = CScript();
-        for (auto& txin : tx2.vin) txin.scriptSig = CScript();
-        return CBasicTransaction{tx1} == CBasicTransaction{tx2};
+    CMutableTransaction tx1{*this->tx};
+    CMutableTransaction tx2{*_tx.tx};
+    for (auto& txin : tx1.vin)
+        txin.scriptSig = CScript();
+    for (auto& txin : tx2.vin)
+        txin.scriptSig = CScript();
+    return CBasicTransaction{tx1} == CBasicTransaction{tx2};
 }
 
 std::vector<uint256> CWallet::ResendWalletTransactionsBefore(int64_t nTime, CConnman* connman)

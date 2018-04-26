@@ -200,8 +200,8 @@ bool CBloomFilter::IsRelevantAndUpdate(const Transaction& tx)
 
     return false;
 }
-template  bool CBloomFilter::IsRelevantAndUpdate<CBasicTransaction>(const CBasicTransaction& tx);
-template  bool CBloomFilter::IsRelevantAndUpdate<CTransaction>(const CTransaction& tx);
+template bool CBloomFilter::IsRelevantAndUpdate<CBasicTransaction>(const CBasicTransaction& tx);
+template bool CBloomFilter::IsRelevantAndUpdate<CTransaction>(const CTransaction& tx);
 
 void CBloomFilter::UpdateEmptyFull()
 {

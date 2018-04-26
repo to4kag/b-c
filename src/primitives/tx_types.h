@@ -12,9 +12,9 @@
 // transaction.h or block.h header
 
 enum class TxType {
-PURE, //!< Provides just the data
-BASIC, //!< data + cache of the non-witness hash
-FULL, //!< all cached data (used for validation)
+    PURE,  //!< Provides just the data
+    BASIC, //!< data + cache of the non-witness hash
+    FULL,  //!< all cached data (used for validation)
 };
 
 template <TxType t>

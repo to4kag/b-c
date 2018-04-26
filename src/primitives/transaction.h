@@ -6,11 +6,11 @@
 #ifndef BITCOIN_PRIMITIVES_TRANSACTION_H
 #define BITCOIN_PRIMITIVES_TRANSACTION_H
 
-#include <stdint.h>
-#include <primitives/tx_types.h>
 #include <amount.h>
+#include <primitives/tx_types.h>
 #include <script/script.h>
 #include <serialize.h>
+#include <stdint.h>
 #include <uint256.h>
 
 static const int SERIALIZE_TRANSACTION_NO_WITNESS = 0x40000000;
@@ -314,8 +314,9 @@ public:
     }
 
     const uint256& GetHash() const {
-static_assert(t==TxType::BASIC || t==TxType::FULL,"This type doesn't support hash");
-return hash;}
+        static_assert(t == TxType::BASIC || t == TxType::FULL, "This type doesn't support hash");
+        return hash;
+    }
 
     // Compute a hash that includes both transaction and witness data
     uint256 GetWitnessHash() const;
@@ -339,12 +340,13 @@ return hash;}
 
     friend bool operator==(const Transaction& a, const Transaction& b)
     {
-        return a.GetHash() == b.GetHash();
+        static_assert(t == TxType::BASIC || t == TxType::FULL, "This type doesn't support hash");
+        return a.hash == b.hash;
     }
 
     friend bool operator!=(const Transaction& a, const Transaction& b)
     {
-        return !(a==b);
+        return !(a == b);
     }
 
     std::string ToString() const;
