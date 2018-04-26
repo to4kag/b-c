@@ -3,8 +3,8 @@
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-#ifndef BITCOIN_PRIMITIVES_TEMPLATES_H
-#define BITCOIN_PRIMITIVES_TEMPLATES_H
+#ifndef BITCOIN_PRIMITIVES_TX_TYPES_H
+#define BITCOIN_PRIMITIVES_TX_TYPES_H
 
 #include <memory>
 
@@ -35,4 +35,4 @@ using CPureBlock = Block<CPureTransactionRef>;
 using CBasicBlock = Block<CBasicTransactionRef>;
 using CBlock = Block<CTransactionRef>;
 
-#endif // BITCOIN_PRIMITIVES_TEMPLATES_H
+#endif // BITCOIN_PRIMITIVES_TX_TYPES_H
