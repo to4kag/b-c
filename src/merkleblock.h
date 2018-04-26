@@ -144,7 +144,8 @@ public:
      * Note that this will call IsRelevantAndUpdate on the filter for each transaction,
      * thus the filter will likely be modified.
      */
-    CMerkleBlock(const CBlock& block, CBloomFilter& filter) : CMerkleBlock(block, &filter, nullptr) { }
+    template <typename Block>
+    CMerkleBlock(const Block& block, CBloomFilter& filter) : CMerkleBlock(block, &filter, nullptr) { }
 
     // Create from a CBlock, matching the txids in the set
     CMerkleBlock(const CBlock& block, const std::set<uint256>& txids) : CMerkleBlock(block, nullptr, &txids) { }
@@ -161,7 +162,8 @@ public:
 
 private:
     // Combined constructor to consolidate code
-    CMerkleBlock(const CBlock& block, CBloomFilter* filter, const std::set<uint256>* txids);
+    template <typename Block>
+    CMerkleBlock(const Block& block, CBloomFilter* filter, const std::set<uint256>* txids);
 };
 
 #endif // BITCOIN_MERKLEBLOCK_H

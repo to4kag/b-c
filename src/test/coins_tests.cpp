@@ -256,7 +256,7 @@ BOOST_AUTO_TEST_CASE(coins_cache_simulation_test)
 }
 
 // Store of all necessary tx and undo data for next test
-typedef std::map<COutPoint, std::tuple<CTransaction,CTxUndo,Coin>> UtxoData;
+typedef std::map<COutPoint, std::tuple<CPureTransaction, CTxUndo, Coin>> UtxoData;
 UtxoData utxoData;
 
 UtxoData::iterator FindRandomFrom(const std::set<COutPoint> &utxoSet) {
@@ -312,7 +312,7 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test)
                 if (InsecureRandRange(10) == 0 && coinbase_coins.size()) {
                     auto utxod = FindRandomFrom(coinbase_coins);
                     // Reuse the exact same coinbase
-                    tx = std::get<0>(utxod->second);
+                    tx = CMutableTransaction{std::get<0>(utxod->second)};
                     // shouldn't be available for reconnection if it's been duplicated
                     disconnected_coins.erase(utxod->first);
 
@@ -331,7 +331,7 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test)
                 // 1/20 times reconnect a previously disconnected tx
                 if (randiter % 20 == 2 && disconnected_coins.size()) {
                     auto utxod = FindRandomFrom(disconnected_coins);
-                    tx = std::get<0>(utxod->second);
+                    tx = CMutableTransaction{std::get<0>(utxod->second)};
                     prevout = tx.vin[0].prevout;
                     if (!CTransaction(tx).IsCoinBase() && !utxoset.count(prevout)) {
                         disconnected_coins.erase(utxod->first);
@@ -382,14 +382,14 @@ BOOST_AUTO_TEST_CASE(updatecoins_simulation_test)
             utxoset.insert(outpoint);
 
             // Track this tx and undo info to use later
-            utxoData.emplace(outpoint, std::make_tuple(tx,undo,old_coin));
+            utxoData.emplace(outpoint, std::make_tuple(CPureTransaction{tx}, undo, old_coin));
         } else if (utxoset.size()) {
             //1/20 times undo a previous transaction
             auto utxod = FindRandomFrom(utxoset);
 
-            CTransaction &tx = std::get<0>(utxod->second);
-            CTxUndo &undo = std::get<1>(utxod->second);
-            Coin &orig_coin = std::get<2>(utxod->second);
+            const CPureTransaction& tx = std::get<0>(utxod->second);
+            const CTxUndo& undo = std::get<1>(utxod->second);
+            const Coin& orig_coin = std::get<2>(utxod->second);
 
             // Update the expected result
             // Remove new outputs

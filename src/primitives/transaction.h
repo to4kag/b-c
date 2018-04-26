@@ -6,10 +6,11 @@
 #ifndef BITCOIN_PRIMITIVES_TRANSACTION_H
 #define BITCOIN_PRIMITIVES_TRANSACTION_H
 
-#include <stdint.h>
 #include <amount.h>
+#include <primitives/tx_types.h>
 #include <script/script.h>
 #include <serialize.h>
+#include <stdint.h>
 #include <uint256.h>
 
 static const int SERIALIZE_TRANSACTION_NO_WITNESS = 0x40000000;
@@ -261,7 +262,8 @@ inline void SerializeTransaction(const TxType& tx, Stream& s) {
 /** The basic transaction that is broadcasted on the network and contained in
  * blocks.  A transaction can contain multiple inputs and outputs.
  */
-class CTransaction
+template <TxType t>
+class Transaction
 {
 public:
     // Default transaction version.
@@ -290,12 +292,12 @@ private:
     uint256 ComputeHash() const;
 
 public:
-    /** Construct a CTransaction that qualifies as IsNull() */
-    CTransaction();
+    /** Construct a Transaction that qualifies as IsNull() */
+    Transaction();
 
-    /** Convert a CMutableTransaction into a CTransaction. */
-    CTransaction(const CMutableTransaction &tx);
-    CTransaction(CMutableTransaction &&tx);
+    /** Convert a CMutableTransaction into a Transaction. */
+    Transaction(const CMutableTransaction& tx);
+    Transaction(CMutableTransaction&& tx);
 
     template <typename Stream>
     inline void Serialize(Stream& s) const {
@@ -305,13 +307,14 @@ public:
     /** This deserializing constructor is provided instead of an Unserialize method.
      *  Unserialize is not possible, since it would require overwriting const fields. */
     template <typename Stream>
-    CTransaction(deserialize_type, Stream& s) : CTransaction(CMutableTransaction(deserialize, s)) {}
+    Transaction(deserialize_type, Stream& s) : Transaction(CMutableTransaction(deserialize, s)) {}
 
     bool IsNull() const {
         return vin.empty() && vout.empty();
     }
 
     const uint256& GetHash() const {
+        static_assert(t == TxType::BASIC || t == TxType::FULL, "This type doesn't support hash");
         return hash;
     }
 
@@ -335,14 +338,15 @@ public:
         return (vin.size() == 1 && vin[0].prevout.IsNull());
     }
 
-    friend bool operator==(const CTransaction& a, const CTransaction& b)
+    friend bool operator==(const Transaction& a, const Transaction& b)
     {
+        static_assert(t == TxType::BASIC || t == TxType::FULL, "This type doesn't support hash");
         return a.hash == b.hash;
     }
 
-    friend bool operator!=(const CTransaction& a, const CTransaction& b)
+    friend bool operator!=(const Transaction& a, const Transaction& b)
     {
-        return a.hash != b.hash;
+        return !(a == b);
     }
 
     std::string ToString() const;
@@ -367,7 +371,9 @@ struct CMutableTransaction
     uint32_t nLockTime;
 
     CMutableTransaction();
-    CMutableTransaction(const CTransaction& tx);
+    explicit CMutableTransaction(const CPureTransaction& tx);
+    explicit CMutableTransaction(const CBasicTransaction& tx);
+    explicit CMutableTransaction(const CTransaction& tx);
 
     template <typename Stream>
     inline void Serialize(Stream& s) const {
@@ -406,7 +412,10 @@ struct CMutableTransaction
     }
 };
 
-typedef std::shared_ptr<const CTransaction> CTransactionRef;
+static inline CPureTransactionRef MakePureTransactionRef() { return std::make_shared<const CPureTransaction>(); }
+template <typename Tx> static inline CPureTransactionRef MakePureTransactionRef(Tx&& txIn) { return std::make_shared<const CPureTransaction>(std::forward<Tx>(txIn)); }
+static inline CBasicTransactionRef MakeBasicTransactionRef() { return std::make_shared<const CBasicTransaction>(); }
+template <typename Tx> static inline CBasicTransactionRef MakeBasicTransactionRef(Tx&& txIn) { return std::make_shared<const CBasicTransaction>(std::forward<Tx>(txIn)); }
 static inline CTransactionRef MakeTransactionRef() { return std::make_shared<const CTransaction>(); }
 template <typename Tx> static inline CTransactionRef MakeTransactionRef(Tx&& txIn) { return std::make_shared<const CTransaction>(std::forward<Tx>(txIn)); }
 

@@ -6,13 +6,12 @@
 #define BITCOIN_CORE_IO_H
 
 #include <amount.h>
+#include <primitives/tx_types.h>
 
 #include <string>
 #include <vector>
 
-class CBlock;
 class CScript;
-class CTransaction;
 struct CMutableTransaction;
 class uint256;
 class UniValue;

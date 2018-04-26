@@ -1019,9 +1019,10 @@ bool CWallet::LoadToWallet(const CWalletTx& wtxIn)
  * Abandoned state should probably be more carefully tracked via different
  * posInBlock signals or by checking mempool presence when necessary.
  */
-bool CWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const CBlockIndex* pIndex, int posInBlock, bool fUpdate)
+template <typename TransactionRef>
+bool CWallet::AddToWalletIfInvolvingMe(const TransactionRef& ptx, const CBlockIndex* pIndex, int posInBlock, bool fUpdate)
 {
-    const CTransaction& tx = *ptx;
+    const auto& tx = *ptx;
     {
         AssertLockHeld(cs_wallet);
 
@@ -1066,7 +1067,7 @@ bool CWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const CBlockI
                 }
             }
 
-            CWalletTx wtx(this, ptx);
+            CWalletTx wtx(this, MakeTransactionRef(CMutableTransaction{*ptx}));
 
             // Get merkle branch if transaction was found in a block
             if (pIndex != nullptr)
@@ -1077,6 +1078,8 @@ bool CWallet::AddToWalletIfInvolvingMe(const CTransactionRef& ptx, const CBlockI
     }
     return false;
 }
+template bool CWallet::AddToWalletIfInvolvingMe<CBasicTransactionRef>(const CBasicTransactionRef& ptx, const CBlockIndex* pIndex, int posInBlock, bool fUpdate);
+template bool CWallet::AddToWalletIfInvolvingMe<CTransactionRef>(const CTransactionRef& ptx, const CBlockIndex* pIndex, int posInBlock, bool fUpdate);
 
 bool CWallet::TransactionCanBeAbandoned(const uint256& hashTx) const
 {
@@ -1371,20 +1374,25 @@ CAmount CWallet::GetChange(const CTxOut& txout) const
     return (IsChange(txout) ? txout.nValue : 0);
 }
 
-bool CWallet::IsMine(const CTransaction& tx) const
+template <typename Transaction>
+bool CWallet::IsMine(const Transaction& tx) const
 {
     for (const CTxOut& txout : tx.vout)
         if (IsMine(txout))
             return true;
     return false;
 }
+template bool CWallet::IsMine<CTransaction>(const CTransaction& tx) const;
+template bool CWallet::IsMine<CBasicTransaction>(const CBasicTransaction& tx) const;
 
-bool CWallet::IsFromMe(const CTransaction& tx) const
+template <typename Transaction>
+bool CWallet::IsFromMe(const Transaction& tx) const
 {
     return (GetDebit(tx, ISMINE_ALL) > 0);
 }
 
-CAmount CWallet::GetDebit(const CTransaction& tx, const isminefilter& filter) const
+template <typename Transaction>
+CAmount CWallet::GetDebit(const Transaction& tx, const isminefilter& filter) const
 {
     CAmount nDebit = 0;
     for (const CTxIn& txin : tx.vin)
@@ -1757,7 +1765,7 @@ CBlockIndex* CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, CBlock
                 LogPrintf("Still rescanning. At block %d. Progress=%f\n", pindex->nHeight, gvp);
             }
 
-            CBlock block;
+            CBasicBlock block;
             if (ReadBlockFromDisk(block, pindex, Params().GetConsensus())) {
                 LOCK2(cs_main, cs_wallet);
                 if (pindex && !chainActive.Contains(pindex)) {
@@ -2056,11 +2064,13 @@ bool CWalletTx::IsTrusted() const
 
 bool CWalletTx::IsEquivalentTo(const CWalletTx& _tx) const
 {
-        CMutableTransaction tx1 = *this->tx;
-        CMutableTransaction tx2 = *_tx.tx;
-        for (auto& txin : tx1.vin) txin.scriptSig = CScript();
-        for (auto& txin : tx2.vin) txin.scriptSig = CScript();
-        return CTransaction(tx1) == CTransaction(tx2);
+    CMutableTransaction tx1{*this->tx};
+    CMutableTransaction tx2{*_tx.tx};
+    for (auto& txin : tx1.vin)
+        txin.scriptSig = CScript();
+    for (auto& txin : tx2.vin)
+        txin.scriptSig = CScript();
+    return CBasicTransaction{tx1} == CBasicTransaction{tx2};
 }
 
 std::vector<uint256> CWallet::ResendWalletTransactionsBefore(int64_t nTime, CConnman* connman)

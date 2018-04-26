@@ -5,7 +5,8 @@
 #ifndef BITCOIN_RPC_BLOCKCHAIN_H
 #define BITCOIN_RPC_BLOCKCHAIN_H
 
-class CBlock;
+#include <primitives/tx_types.h>
+
 class CBlockIndex;
 class UniValue;
 

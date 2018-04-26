@@ -9,8 +9,8 @@
 #include <consensus/consensus.h>
 #include <utilstrencodings.h>
 
-
-CMerkleBlock::CMerkleBlock(const CBlock& block, CBloomFilter* filter, const std::set<uint256>* txids)
+template <typename Block>
+CMerkleBlock::CMerkleBlock(const Block& block, CBloomFilter* filter, const std::set<uint256>* txids)
 {
     header = block.GetBlockHeader();
 
@@ -36,6 +36,8 @@ CMerkleBlock::CMerkleBlock(const CBlock& block, CBloomFilter* filter, const std:
 
     txn = CPartialMerkleTree(vHashes, vMatch);
 }
+template CMerkleBlock::CMerkleBlock<CBasicBlock>(const CBasicBlock& block, CBloomFilter* filer, const std::set<uint256>* txids);
+template CMerkleBlock::CMerkleBlock<CBlock>(const CBlock& block, CBloomFilter* filer, const std::set<uint256>* txids);
 
 uint256 CPartialMerkleTree::CalcHash(int height, unsigned int pos, const std::vector<uint256> &vTxid) {
     //we can never have zero txs in a merkle block, we always need the coinbase tx
