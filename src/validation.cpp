@@ -1063,8 +1063,7 @@ bool GetTransaction(const uint256& hash, CTransactionRef& txOut, const Consensus
         if (ReadBlockFromDisk(block, pindexSlow, consensusParams)) {
             for (const auto& tx : block.vtx) {
                 if (tx->GetHash() == hash) {
-                    // "Upgrade this basic tx to a "full" tx
-                    txOut = MakeTransactionRef(CMutableTransaction{*tx});
+                    txOut = tx;
                     hashBlock = pindexSlow->GetBlockHash();
                     return true;
                 }
@@ -1132,7 +1131,6 @@ bool ReadBlockFromDisk(Block& block, const CDiskBlockPos& pos, const Consensus::
 }
 template bool ReadBlockFromDisk<CPureBlock>(CPureBlock& block, const CDiskBlockPos& pos, const Consensus::Params& consensusParams);
 template bool ReadBlockFromDisk<CBlock>(CBlock& block, const CDiskBlockPos& pos, const Consensus::Params& consensusParams);
-template bool ReadBlockFromDisk<CBlock>(CBlock& block, const CDiskBlockPos& pos, const Consensus::Params& consensusParams);
 
 template <typename Block>
 bool ReadBlockFromDisk(Block& block, const CBlockIndex* pindex, const Consensus::Params& consensusParams)
@@ -1151,7 +1149,6 @@ bool ReadBlockFromDisk(Block& block, const CBlockIndex* pindex, const Consensus:
     return true;
 }
 template bool ReadBlockFromDisk<CPureBlock>(CPureBlock& block, const CBlockIndex* pindex, const Consensus::Params& consensusParams);
-template bool ReadBlockFromDisk<CBlock>(CBlock& block, const CBlockIndex* pindex, const Consensus::Params& consensusParams);
 template bool ReadBlockFromDisk<CBlock>(CBlock& block, const CBlockIndex* pindex, const Consensus::Params& consensusParams);
 
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)

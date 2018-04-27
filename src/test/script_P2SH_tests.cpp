@@ -316,9 +316,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard)
     txFrom.vout[6].scriptPubKey = GetScriptForDestination(CScriptID(twentySigops));
     txFrom.vout[6].nValue = 6000;
 
-    const CTransaction tx_from{txFrom};
-
-    AddCoins(coins, tx_from, 0);
+    AddCoins(coins, txFrom, 0);
 
     CMutableTransaction txTo;
     txTo.vout.resize(1);
@@ -328,11 +326,11 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard)
     for (int i = 0; i < 5; i++)
     {
         txTo.vin[i].prevout.n = i;
-        txTo.vin[i].prevout.hash = tx_from.GetHash();
+        txTo.vin[i].prevout.hash = txFrom.GetHash();
     }
-    BOOST_CHECK(SignSignature(keystore, tx_from, txTo, 0, SIGHASH_ALL));
-    BOOST_CHECK(SignSignature(keystore, tx_from, txTo, 1, SIGHASH_ALL));
-    BOOST_CHECK(SignSignature(keystore, tx_from, txTo, 2, SIGHASH_ALL));
+    BOOST_CHECK(SignSignature(keystore, txFrom, txTo, 0, SIGHASH_ALL));
+    BOOST_CHECK(SignSignature(keystore, txFrom, txTo, 1, SIGHASH_ALL));
+    BOOST_CHECK(SignSignature(keystore, txFrom, txTo, 2, SIGHASH_ALL));
     // SignSignature doesn't know how to sign these. We're
     // not testing validating signatures, so just create
     // dummy signatures that DO include the correct P2SH scripts:
@@ -349,7 +347,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard)
     txToNonStd1.vout[0].nValue = 1000;
     txToNonStd1.vin.resize(1);
     txToNonStd1.vin[0].prevout.n = 5;
-    txToNonStd1.vin[0].prevout.hash = tx_from.GetHash();
+    txToNonStd1.vin[0].prevout.hash = txFrom.GetHash();
     txToNonStd1.vin[0].scriptSig << std::vector<unsigned char>(sixteenSigops.begin(), sixteenSigops.end());
 
     BOOST_CHECK(!::AreInputsStandard(txToNonStd1, coins));
@@ -361,7 +359,7 @@ BOOST_AUTO_TEST_CASE(AreInputsStandard)
     txToNonStd2.vout[0].nValue = 1000;
     txToNonStd2.vin.resize(1);
     txToNonStd2.vin[0].prevout.n = 6;
-    txToNonStd2.vin[0].prevout.hash = tx_from.GetHash();
+    txToNonStd2.vin[0].prevout.hash = txFrom.GetHash();
     txToNonStd2.vin[0].scriptSig << std::vector<unsigned char>(twentySigops.begin(), twentySigops.end());
 
     BOOST_CHECK(!::AreInputsStandard(txToNonStd2, coins));

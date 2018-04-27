@@ -305,6 +305,11 @@ public:
         return vin.empty() && vout.empty();
     }
 
+    bool IsCoinBase() const
+    {
+        return (vin.size() == 1 && vin[0].prevout.IsNull());
+    }
+
     bool HasWitness() const
     {
         for (size_t i = 0; i < vin.size(); i++) {
@@ -354,11 +359,6 @@ public:
      * @return Total transaction size in bytes
      */
     unsigned int GetTotalSize() const;
-
-    bool IsCoinBase() const
-    {
-        return (vin.size() == 1 && vin[0].prevout.IsNull());
-    }
 
     friend bool operator==(const CTransaction& a, const CTransaction& b)
     {

@@ -84,9 +84,7 @@ void CCoinsViewCache::AddCoin(const COutPoint &outpoint, Coin&& coin, bool possi
     cachedCoinsUsage += it->second.coin.DynamicMemoryUsage();
 }
 
-template <typename Transaction>
-void AddCoins(CCoinsViewCache& cache, const Transaction& tx, int nHeight, bool check)
-{
+void AddCoins(CCoinsViewCache& cache, const CTransaction &tx, int nHeight, bool check) {
     bool fCoinbase = tx.IsCoinBase();
     const uint256& txid = tx.GetHash();
     for (size_t i = 0; i < tx.vout.size(); ++i) {
@@ -96,8 +94,6 @@ void AddCoins(CCoinsViewCache& cache, const Transaction& tx, int nHeight, bool c
         cache.AddCoin(COutPoint(txid, i), Coin(tx.vout[i], nHeight, fCoinbase), overwrite);
     }
 }
-template void AddCoins<CTransaction>(CCoinsViewCache& cache, const CTransaction& tx, int nHeight, bool check);
-template void AddCoins<CTransaction>(CCoinsViewCache& cache, const CTransaction& tx, int nHeight, bool check);
 
 bool CCoinsViewCache::SpendCoin(const COutPoint &outpoint, Coin* moveout) {
     CCoinsMap::iterator it = FetchCoin(outpoint);

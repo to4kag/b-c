@@ -32,21 +32,6 @@ static void DeserializePureBlockTest(benchmark::State& state)
     }
 }
 
-static void DeserializeBasicBlockTest(benchmark::State& state)
-{
-    CDataStream stream((const char*)block_bench::block413567,
-        (const char*)&block_bench::block413567[sizeof(block_bench::block413567)],
-        SER_NETWORK, PROTOCOL_VERSION);
-    char a = '\0';
-    stream.write(&a, 1); // Prevent compaction
-
-    while (state.KeepRunning()) {
-        CBlock block;
-        stream >> block;
-        assert(stream.Rewind(sizeof(block_bench::block413567)));
-    }
-}
-
 static void DeserializeBlockTest(benchmark::State& state)
 {
     CDataStream stream((const char*)block_bench::block413567,
@@ -83,6 +68,5 @@ static void DeserializeAndCheckBlockTest(benchmark::State& state)
 }
 
 BENCHMARK(DeserializePureBlockTest, 970);
-BENCHMARK(DeserializeBasicBlockTest, 130);
 BENCHMARK(DeserializeBlockTest, 130);
 BENCHMARK(DeserializeAndCheckBlockTest, 160);
