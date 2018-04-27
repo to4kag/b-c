@@ -96,7 +96,7 @@ void AddCoins(CCoinsViewCache& cache, const Transaction& tx, int nHeight, bool c
         cache.AddCoin(COutPoint(txid, i), Coin(tx.vout[i], nHeight, fCoinbase), overwrite);
     }
 }
-template void AddCoins<CBasicTransaction>(CCoinsViewCache& cache, const CBasicTransaction& tx, int nHeight, bool check);
+template void AddCoins<CTransaction>(CCoinsViewCache& cache, const CTransaction& tx, int nHeight, bool check);
 template void AddCoins<CTransaction>(CCoinsViewCache& cache, const CTransaction& tx, int nHeight, bool check);
 
 bool CCoinsViewCache::SpendCoin(const COutPoint &outpoint, Coin* moveout) {

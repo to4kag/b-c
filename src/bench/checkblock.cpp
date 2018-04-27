@@ -41,7 +41,7 @@ static void DeserializeBasicBlockTest(benchmark::State& state)
     stream.write(&a, 1); // Prevent compaction
 
     while (state.KeepRunning()) {
-        CBasicBlock block;
+        CBlock block;
         stream >> block;
         assert(stream.Rewind(sizeof(block_bench::block413567)));
     }

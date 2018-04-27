@@ -1153,7 +1153,7 @@ void static ProcessGetBlockData(CNode* pfrom, const Consensus::Params& consensus
                 connman->PushMessage(pfrom, msgMaker.Make(ser_flags, NetMsgType::BLOCK, pure_block));
             }
         } else if (inv.type == MSG_FILTERED_BLOCK) {
-            CBasicBlock basic_block;
+            CBlock basic_block;
             if (!pblock && !ReadBlockFromDisk(basic_block, pindex, consensusParams)) assert(!"cannot load block from disk");
             bool sendMerkleBlock = false;
             CMerkleBlock merkleBlock;

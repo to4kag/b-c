@@ -1059,7 +1059,7 @@ bool GetTransaction(const uint256& hash, CTransactionRef& txOut, const Consensus
     }
 
     if (pindexSlow) {
-        CBasicBlock block;
+        CBlock block;
         if (ReadBlockFromDisk(block, pindexSlow, consensusParams)) {
             for (const auto& tx : block.vtx) {
                 if (tx->GetHash() == hash) {
@@ -1131,7 +1131,7 @@ bool ReadBlockFromDisk(Block& block, const CDiskBlockPos& pos, const Consensus::
     return true;
 }
 template bool ReadBlockFromDisk<CPureBlock>(CPureBlock& block, const CDiskBlockPos& pos, const Consensus::Params& consensusParams);
-template bool ReadBlockFromDisk<CBasicBlock>(CBasicBlock& block, const CDiskBlockPos& pos, const Consensus::Params& consensusParams);
+template bool ReadBlockFromDisk<CBlock>(CBlock& block, const CDiskBlockPos& pos, const Consensus::Params& consensusParams);
 template bool ReadBlockFromDisk<CBlock>(CBlock& block, const CDiskBlockPos& pos, const Consensus::Params& consensusParams);
 
 template <typename Block>
@@ -1151,7 +1151,7 @@ bool ReadBlockFromDisk(Block& block, const CBlockIndex* pindex, const Consensus:
     return true;
 }
 template bool ReadBlockFromDisk<CPureBlock>(CPureBlock& block, const CBlockIndex* pindex, const Consensus::Params& consensusParams);
-template bool ReadBlockFromDisk<CBasicBlock>(CBasicBlock& block, const CBlockIndex* pindex, const Consensus::Params& consensusParams);
+template bool ReadBlockFromDisk<CBlock>(CBlock& block, const CBlockIndex* pindex, const Consensus::Params& consensusParams);
 template bool ReadBlockFromDisk<CBlock>(CBlock& block, const CBlockIndex* pindex, const Consensus::Params& consensusParams);
 
 CAmount GetBlockSubsidy(int nHeight, const Consensus::Params& consensusParams)
@@ -4060,12 +4060,12 @@ bool CVerifyDB::VerifyDB(const CChainParams& chainparams, CCoinsView *coinsview,
 bool CChainState::RollforwardBlock(const CBlockIndex* pindex, CCoinsViewCache& inputs, const CChainParams& params)
 {
     // TODO: merge with ConnectBlock
-    CBasicBlock block;
+    CBlock block;
     if (!ReadBlockFromDisk(block, pindex, params.GetConsensus())) {
         return error("ReplayBlock(): ReadBlockFromDisk failed at %d, hash=%s", pindex->nHeight, pindex->GetBlockHash().ToString());
     }
 
-    for (const CBasicTransactionRef& tx : block.vtx) {
+    for (const CTransactionRef& tx : block.vtx) {
         if (!tx->IsCoinBase()) {
             for (const CTxIn &txin : tx->vin) {
                 inputs.SpendCoin(txin.prevout);

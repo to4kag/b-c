@@ -2261,11 +2261,11 @@ UniValue listsinceblock(const JSONRPCRequest& request)
     // in the blocks of the chain that was detached
     UniValue removed(UniValue::VARR);
     while (include_removed && paltindex && paltindex != pindex) {
-        CBasicBlock block;
+        CBlock block;
         if (!ReadBlockFromDisk(block, paltindex, Params().GetConsensus())) {
             throw JSONRPCError(RPC_INTERNAL_ERROR, "Can't read block from disk");
         }
-        for (const CBasicTransactionRef& tx : block.vtx) {
+        for (const CTransactionRef& tx : block.vtx) {
             auto it = pwallet->mapWallet.find(tx->GetHash());
             if (it != pwallet->mapWallet.end()) {
                 // We want all transactions regardless of confirmation count to appear here,

@@ -1078,7 +1078,7 @@ bool CWallet::AddToWalletIfInvolvingMe(const TransactionRef& ptx, const CBlockIn
     }
     return false;
 }
-template bool CWallet::AddToWalletIfInvolvingMe<CBasicTransactionRef>(const CBasicTransactionRef& ptx, const CBlockIndex* pIndex, int posInBlock, bool fUpdate);
+template bool CWallet::AddToWalletIfInvolvingMe<CTransactionRef>(const CTransactionRef& ptx, const CBlockIndex* pIndex, int posInBlock, bool fUpdate);
 template bool CWallet::AddToWalletIfInvolvingMe<CTransactionRef>(const CTransactionRef& ptx, const CBlockIndex* pIndex, int posInBlock, bool fUpdate);
 
 bool CWallet::TransactionCanBeAbandoned(const uint256& hashTx) const
@@ -1383,7 +1383,7 @@ bool CWallet::IsMine(const Transaction& tx) const
     return false;
 }
 template bool CWallet::IsMine<CTransaction>(const CTransaction& tx) const;
-template bool CWallet::IsMine<CBasicTransaction>(const CBasicTransaction& tx) const;
+template bool CWallet::IsMine<CTransaction>(const CTransaction& tx) const;
 
 template <typename Transaction>
 bool CWallet::IsFromMe(const Transaction& tx) const
@@ -1765,7 +1765,7 @@ CBlockIndex* CWallet::ScanForWalletTransactions(CBlockIndex* pindexStart, CBlock
                 LogPrintf("Still rescanning. At block %d. Progress=%f\n", pindex->nHeight, gvp);
             }
 
-            CBasicBlock block;
+            CBlock block;
             if (ReadBlockFromDisk(block, pindex, Params().GetConsensus())) {
                 LOCK2(cs_main, cs_wallet);
                 if (pindex && !chainActive.Contains(pindex)) {
@@ -2070,7 +2070,7 @@ bool CWalletTx::IsEquivalentTo(const CWalletTx& _tx) const
         txin.scriptSig = CScript();
     for (auto& txin : tx2.vin)
         txin.scriptSig = CScript();
-    return CBasicTransaction{tx1} == CBasicTransaction{tx2};
+    return CTransaction{tx1} == CTransaction{tx2};
 }
 
 std::vector<uint256> CWallet::ResendWalletTransactionsBefore(int64_t nTime, CConnman* connman)
