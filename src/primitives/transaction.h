@@ -262,8 +262,7 @@ inline void SerializeTransaction(const TxType& tx, Stream& s) {
 /** The basic transaction that is broadcasted on the network and contained in
  * blocks.  A transaction can contain multiple inputs and outputs.
  */
-template <TxType t>
-class Transaction
+class CPureTransaction
 {
 public:
     // Default transaction version.
@@ -285,19 +284,12 @@ public:
     const int32_t nVersion;
     const uint32_t nLockTime;
 
-private:
-    /** Memory only. */
-    const uint256 hash;
+    /** Construct a CPureTransaction that qualifies as IsNull() */
+    CPureTransaction();
 
-    uint256 ComputeHash() const;
-
-public:
-    /** Construct a Transaction that qualifies as IsNull() */
-    Transaction();
-
-    /** Convert a CMutableTransaction into a Transaction. */
-    Transaction(const CMutableTransaction& tx);
-    Transaction(CMutableTransaction&& tx);
+    /** Convert a CMutableTransaction into a CPureTransaction. */
+    CPureTransaction(const CMutableTransaction& tx);
+    CPureTransaction(CMutableTransaction&& tx);
 
     template <typename Stream>
     inline void Serialize(Stream& s) const {
@@ -307,14 +299,44 @@ public:
     /** This deserializing constructor is provided instead of an Unserialize method.
      *  Unserialize is not possible, since it would require overwriting const fields. */
     template <typename Stream>
-    Transaction(deserialize_type, Stream& s) : Transaction(CMutableTransaction(deserialize, s)) {}
+    CPureTransaction(deserialize_type, Stream& s) : CPureTransaction(CMutableTransaction(deserialize, s)) {}
 
     bool IsNull() const {
         return vin.empty() && vout.empty();
     }
 
+    bool HasWitness() const
+    {
+        for (size_t i = 0; i < vin.size(); i++) {
+            if (!vin[i].scriptWitness.IsNull()) {
+                return true;
+            }
+        }
+        return false;
+    }
+};
+
+class CTransaction : public CPureTransaction {
+private:
+    /** Memory only. */
+    const uint256 hash;
+
+    uint256 ComputeHash() const;
+
+public:
+    /** Construct a CTransaction that qualifies as IsNull() */
+    CTransaction();
+
+    /** Convert a CMutableTransaction into a CTransaction. */
+    CTransaction(const CMutableTransaction& tx);
+    CTransaction(CMutableTransaction&& tx);
+
+    /** This deserializing constructor is provided instead of an Unserialize method.
+     *  Unserialize is not possible, since it would require overwriting const fields. */
+    template <typename Stream>
+    CTransaction(deserialize_type, Stream& s) : CTransaction(CMutableTransaction(deserialize, s)) {}
+
     const uint256& GetHash() const {
-        static_assert(t == TxType::BASIC || t == TxType::FULL, "This type doesn't support hash");
         return hash;
     }
 
@@ -338,28 +360,17 @@ public:
         return (vin.size() == 1 && vin[0].prevout.IsNull());
     }
 
-    friend bool operator==(const Transaction& a, const Transaction& b)
+    friend bool operator==(const CTransaction& a, const CTransaction& b)
     {
-        static_assert(t == TxType::BASIC || t == TxType::FULL, "This type doesn't support hash");
         return a.hash == b.hash;
     }
 
-    friend bool operator!=(const Transaction& a, const Transaction& b)
+    friend bool operator!=(const CTransaction& a, const CTransaction& b)
     {
         return !(a == b);
     }
 
     std::string ToString() const;
-
-    bool HasWitness() const
-    {
-        for (size_t i = 0; i < vin.size(); i++) {
-            if (!vin[i].scriptWitness.IsNull()) {
-                return true;
-            }
-        }
-        return false;
-    }
 };
 
 /** A mutable version of CTransaction. */
@@ -372,7 +383,6 @@ struct CMutableTransaction
 
     CMutableTransaction();
     explicit CMutableTransaction(const CPureTransaction& tx);
-    explicit CMutableTransaction(const CBasicTransaction& tx);
     explicit CMutableTransaction(const CTransaction& tx);
 
     template <typename Stream>
@@ -414,8 +424,6 @@ struct CMutableTransaction
 
 static inline CPureTransactionRef MakePureTransactionRef() { return std::make_shared<const CPureTransaction>(); }
 template <typename Tx> static inline CPureTransactionRef MakePureTransactionRef(Tx&& txIn) { return std::make_shared<const CPureTransaction>(std::forward<Tx>(txIn)); }
-static inline CBasicTransactionRef MakeBasicTransactionRef() { return std::make_shared<const CBasicTransaction>(); }
-template <typename Tx> static inline CBasicTransactionRef MakeBasicTransactionRef(Tx&& txIn) { return std::make_shared<const CBasicTransaction>(std::forward<Tx>(txIn)); }
 static inline CTransactionRef MakeTransactionRef() { return std::make_shared<const CTransaction>(); }
 template <typename Tx> static inline CTransactionRef MakeTransactionRef(Tx&& txIn) { return std::make_shared<const CTransaction>(std::forward<Tx>(txIn)); }
 

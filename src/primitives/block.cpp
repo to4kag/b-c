@@ -31,5 +31,4 @@ std::string Block<TxRef>::ToString() const
     }
     return s.str();
 }
-template std::string Block<CBasicTransactionRef>::ToString() const;
 template std::string Block<CTransactionRef>::ToString() const;
