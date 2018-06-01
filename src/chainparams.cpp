@@ -370,13 +370,18 @@ std::unique_ptr<CChainParams> CreateChainParams(const std::string& chain)
         return std::unique_ptr<CChainParams>(new CTestNetParams());
     else if (chain == CBaseChainParams::REGTEST)
         return std::unique_ptr<CChainParams>(new CRegTestParams());
-    throw std::runtime_error(strprintf("%s: Unknown chain %s.", __func__, chain));
+    return {};
 }
 
-void SelectParams(const std::string& network)
+bool SetParams(const std::string& network, std::string& error)
 {
-    SelectBaseParams(network);
+    if (!SetBaseParams(network, error)) return false;
     globalChainParams = CreateChainParams(network);
+    if (!globalChainParams) {
+        error = strprintf("Unknown chain %s.", network);
+        return false;
+    }
+    return true;
 }
 
 void UpdateVersionBitsParameters(Consensus::DeploymentPos d, int64_t nStartTime, int64_t nTimeout)

@@ -16,7 +16,6 @@
 class CBaseChainParams
 {
 public:
-    /** BIP70 chain name strings (main, test or regtest) */
     static const std::string MAIN;
     static const std::string TESTNET;
     static const std::string REGTEST;
@@ -35,7 +34,6 @@ private:
 /**
  * Creates and returns a std::unique_ptr<CBaseChainParams> of the chosen chain.
  * @returns a CBaseChainParams* of the chosen chain.
- * @throws a std::runtime_error if the chain is not supported.
  */
 std::unique_ptr<CBaseChainParams> CreateBaseChainParams(const std::string& chain);
 
@@ -51,6 +49,6 @@ void SetupChainParamsBaseOptions();
 const CBaseChainParams& BaseParams();
 
 /** Sets the params returned by Params() to those for the given network. */
-void SelectBaseParams(const std::string& chain);
+bool SetBaseParams(const std::string& chain, std::string& error);
 
 #endif // BITCOIN_CHAINPARAMSBASE_H

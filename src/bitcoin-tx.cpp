@@ -87,10 +87,9 @@ static int AppInitRawTx(int argc, char* argv[])
     }
 
     // Check for -chain, -testnet or -regtest parameter (Params() calls are only valid after this clause)
-    try {
-        SelectParams(gArgs.GetChainName());
-    } catch (const std::exception& e) {
-        fprintf(stderr, "Error: %s\n", e.what());
+    std::string chain_id;
+    if (!gArgs.GetChainName(chain_id, error) || !SetParams(chain_id, error)) {
+        fprintf(stderr, "Error: %s\n", error.c_str());
         return EXIT_FAILURE;
     }
 

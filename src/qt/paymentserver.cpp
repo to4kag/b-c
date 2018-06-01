@@ -213,6 +213,7 @@ void PaymentServer::ipcParseCommandLine(interfaces::Node& node, int argc, char* 
         // network as that would require fetching and parsing the payment request.
         // That means clicking such an URI which contains a testnet payment request
         // will start a mainnet instance and throw a "wrong network" error.
+        std::string error;
         if (arg.startsWith(BITCOIN_IPC_PREFIX, Qt::CaseInsensitive)) // bitcoin: URI
         {
             savedPaymentRequests.append(arg);
@@ -223,11 +224,11 @@ void PaymentServer::ipcParseCommandLine(interfaces::Node& node, int argc, char* 
                 auto tempChainParams = CreateChainParams(CBaseChainParams::MAIN);
 
                 if (IsValidDestinationString(r.address.toStdString(), *tempChainParams)) {
-                    node.selectParams(CBaseChainParams::MAIN);
+                    node.setParams(CBaseChainParams::MAIN, error);
                 } else {
                     tempChainParams = CreateChainParams(CBaseChainParams::TESTNET);
                     if (IsValidDestinationString(r.address.toStdString(), *tempChainParams)) {
-                        node.selectParams(CBaseChainParams::TESTNET);
+                        node.setParams(CBaseChainParams::TESTNET, error);
                     }
                 }
             }
@@ -241,11 +242,11 @@ void PaymentServer::ipcParseCommandLine(interfaces::Node& node, int argc, char* 
             {
                 if (request.getDetails().network() == "main")
                 {
-                    node.selectParams(CBaseChainParams::MAIN);
+                    node.setParams(CBaseChainParams::MAIN, error);
                 }
                 else if (request.getDetails().network() == "test")
                 {
-                    node.selectParams(CBaseChainParams::TESTNET);
+                    node.setParams(CBaseChainParams::TESTNET, error);
                 }
             }
         }
@@ -255,6 +256,7 @@ void PaymentServer::ipcParseCommandLine(interfaces::Node& node, int argc, char* 
             // GUI hasn't started yet so we can't pop up a message box.
             qWarning() << "PaymentServer::ipcSendCommandLine: Payment request file does not exist: " << arg;
         }
+        assert(error.empty());
     }
 }
 

@@ -556,41 +556,49 @@ BOOST_AUTO_TEST_CASE(util_GetChainName)
     // regtest in testnet section is ignored
     const char* testnetconf = "testnet=1\nregtest=0\n[test]\nregtest=1";
     std::string error;
+    std::string chain_id;
 
     test_args.ParseParameters(0, (char**)argv_testnet, error);
-    BOOST_CHECK_EQUAL(test_args.GetChainName(), "main");
+    BOOST_CHECK(test_args.GetChainName(chain_id, error));
+    BOOST_CHECK_EQUAL(chain_id, "main");
 
     test_args.ParseParameters(2, (char**)argv_testnet, error);
-    BOOST_CHECK_EQUAL(test_args.GetChainName(), "test");
+    BOOST_CHECK(test_args.GetChainName(chain_id, error));
+    BOOST_CHECK_EQUAL(chain_id, "test");
 
     test_args.ParseParameters(2, (char**)argv_regtest, error);
-    BOOST_CHECK_EQUAL(test_args.GetChainName(), "regtest");
+    BOOST_CHECK(test_args.GetChainName(chain_id, error));
+    BOOST_CHECK_EQUAL(chain_id, "regtest");
 
     test_args.ParseParameters(3, (char**)argv_test_no_reg, error);
-    BOOST_CHECK_EQUAL(test_args.GetChainName(), "test");
+    BOOST_CHECK(test_args.GetChainName(chain_id, error));
+    BOOST_CHECK_EQUAL(chain_id, "test");
 
     test_args.ParseParameters(3, (char**)argv_both, error);
-    BOOST_CHECK_THROW(test_args.GetChainName(), std::runtime_error);
+    BOOST_CHECK(!test_args.GetChainName(chain_id, error));
 
     test_args.ParseParameters(0, (char**)argv_testnet, error);
     test_args.ReadConfigString(testnetconf);
-    BOOST_CHECK_EQUAL(test_args.GetChainName(), "test");
+    BOOST_CHECK(test_args.GetChainName(chain_id, error));
+    BOOST_CHECK_EQUAL(chain_id, "test");
 
     test_args.ParseParameters(2, (char**)argv_testnet, error);
     test_args.ReadConfigString(testnetconf);
-    BOOST_CHECK_EQUAL(test_args.GetChainName(), "test");
+    BOOST_CHECK(test_args.GetChainName(chain_id, error));
+    BOOST_CHECK_EQUAL(chain_id, "test");
 
     test_args.ParseParameters(2, (char**)argv_regtest, error);
     test_args.ReadConfigString(testnetconf);
-    BOOST_CHECK_THROW(test_args.GetChainName(), std::runtime_error);
+    BOOST_CHECK(!test_args.GetChainName(chain_id, error));
 
     test_args.ParseParameters(3, (char**)argv_test_no_reg, error);
     test_args.ReadConfigString(testnetconf);
-    BOOST_CHECK_EQUAL(test_args.GetChainName(), "test");
+    BOOST_CHECK(test_args.GetChainName(chain_id, error));
+    BOOST_CHECK_EQUAL(chain_id, "test");
 
     test_args.ParseParameters(3, (char**)argv_both, error);
     test_args.ReadConfigString(testnetconf);
-    BOOST_CHECK_THROW(test_args.GetChainName(), std::runtime_error);
+    BOOST_CHECK(!test_args.GetChainName(chain_id, error));
 
     // check setting the network to test (and thus making
     // [test] regtest=1 potentially relevant) doesn't break things
@@ -598,23 +606,26 @@ BOOST_AUTO_TEST_CASE(util_GetChainName)
 
     test_args.ParseParameters(0, (char**)argv_testnet, error);
     test_args.ReadConfigString(testnetconf);
-    BOOST_CHECK_EQUAL(test_args.GetChainName(), "test");
+    BOOST_CHECK(test_args.GetChainName(chain_id, error));
+    BOOST_CHECK_EQUAL(chain_id, "test");
 
     test_args.ParseParameters(2, (char**)argv_testnet, error);
     test_args.ReadConfigString(testnetconf);
-    BOOST_CHECK_EQUAL(test_args.GetChainName(), "test");
+    BOOST_CHECK(test_args.GetChainName(chain_id, error));
+    BOOST_CHECK_EQUAL(chain_id, "test");
 
     test_args.ParseParameters(2, (char**)argv_regtest, error);
     test_args.ReadConfigString(testnetconf);
-    BOOST_CHECK_THROW(test_args.GetChainName(), std::runtime_error);
+    BOOST_CHECK(!test_args.GetChainName(chain_id, error));
 
     test_args.ParseParameters(2, (char**)argv_test_no_reg, error);
     test_args.ReadConfigString(testnetconf);
-    BOOST_CHECK_EQUAL(test_args.GetChainName(), "test");
+    BOOST_CHECK(test_args.GetChainName(chain_id, error));
+    BOOST_CHECK_EQUAL(chain_id, "test");
 
     test_args.ParseParameters(3, (char**)argv_both, error);
     test_args.ReadConfigString(testnetconf);
-    BOOST_CHECK_THROW(test_args.GetChainName(), std::runtime_error);
+    BOOST_CHECK(!test_args.GetChainName(chain_id, error));
 }
 
 BOOST_AUTO_TEST_CASE(util_FormatMoney)

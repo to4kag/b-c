@@ -54,8 +54,9 @@ BasicTestingSetup::BasicTestingSetup(const std::string& chainName)
         SetupNetworking();
         InitSignatureCache();
         InitScriptExecutionCache();
-        fCheckBlockIndex = true;
-        SelectParams(chainName);
+        ::fCheckBlockIndex = true;
+        std::string dummy_error;
+        SetParams(chainName, dummy_error);
         noui_connect();
 }
 

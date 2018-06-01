@@ -69,7 +69,7 @@ public:
     uint64_t PruneAfterHeight() const { return nPruneAfterHeight; }
     /** Make miner stop after a block is found. In RPC, don't return until nGenProcLimit blocks are generated */
     bool MineBlocksOnDemand() const { return fMineBlocksOnDemand; }
-    /** Return the BIP70 network string (main, test or regtest) */
+    /** Return the network string (main, test or regtest). Used for BIP70, config prefixes/sections and the -chain option  */
     std::string NetworkIDString() const { return strNetworkID; }
     /** Return true if the fallback fee is by default enabled for this network */
     bool IsFallbackFeeEnabled() const { return m_fallback_fee_enabled; }
@@ -105,7 +105,6 @@ protected:
 /**
  * Creates and returns a std::unique_ptr<CChainParams> of the chosen chain.
  * @returns a CChainParams* of the chosen chain.
- * @throws a std::runtime_error if the chain is not supported.
  */
 std::unique_ptr<CChainParams> CreateChainParams(const std::string& chain);
 
@@ -117,9 +116,8 @@ const CChainParams &Params();
 
 /**
  * Sets the params returned by Params() to those for the given BIP70 chain name.
- * @throws std::runtime_error when the chain is not supported.
  */
-void SelectParams(const std::string& chain);
+bool SetParams(const std::string& chain, std::string& error);
 
 /**
  * Allows modifying the Version Bits regtest parameters.

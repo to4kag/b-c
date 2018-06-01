@@ -118,10 +118,9 @@ static int AppInitRPC(int argc, char* argv[])
         return EXIT_FAILURE;
     }
     // Check for -chain, -testnet or -regtest parameter (BaseParams() calls are only valid after this clause)
-    try {
-        SelectBaseParams(gArgs.GetChainName());
-    } catch (const std::exception& e) {
-        fprintf(stderr, "Error: %s\n", e.what());
+    std::string chain_id;
+    if (!gArgs.GetChainName(chain_id, error) || !SetBaseParams(chain_id, error)) {
+        fprintf(stderr, "Error: %s\n", error.c_str());
         return EXIT_FAILURE;
     }
     if (gArgs.GetBoolArg("-rpcssl", false))

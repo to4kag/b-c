@@ -65,7 +65,7 @@ public:
     // Returns true if there were URIs on the command line
     // which were successfully sent to an already-running
     // process.
-    // Note: if a payment request is given, SelectParams(MAIN/TESTNET)
+    // Note: if a payment request is given, SetParams(MAIN/TESTNET)
     // will be called so we startup in the right mode.
     static bool ipcSendCommandLine();
 

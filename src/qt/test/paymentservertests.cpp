@@ -66,7 +66,8 @@ static SendCoinsRecipient handleRequest(PaymentServer* server, std::vector<unsig
 
 void PaymentServerTests::paymentServerTests()
 {
-    SelectParams(CBaseChainParams::MAIN);
+    std::string dummy_error;
+    SetParams(CBaseChainParams::MAIN, dummy_error);
     auto node = interfaces::MakeNode();
     OptionsModel optionsModel(*node);
     PaymentServer* server = new PaymentServer(nullptr, false);

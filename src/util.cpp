@@ -849,11 +849,13 @@ bool ArgsManager::ReadConfigFiles(std::string& error, bool ignore_invalid_keys)
         // if there is an -includeconf in the override args, but it is empty, that means the user
         // passed '-noincludeconf' on the command line, in which case we should not include anything
         if (m_override_args.count("-includeconf") == 0) {
+            std::string chain_id;
+            if (!GetChainName(chain_id, error)) return false;
             std::vector<std::string> includeconf(GetArgs("-includeconf"));
             {
-                // We haven't set m_network yet (that happens in SelectParams()), so manually check
+                // We haven't set m_network yet (that happens in SetParams()), so manually check
                 // for network.includeconf args.
-                std::vector<std::string> includeconf_net(GetArgs(std::string("-") + GetChainName() + ".includeconf"));
+                std::vector<std::string> includeconf_net(GetArgs(std::string("-") + chain_id + ".includeconf"));
                 includeconf.insert(includeconf.end(), includeconf_net.begin(), includeconf_net.end());
             }
 
@@ -862,7 +864,7 @@ bool ArgsManager::ReadConfigFiles(std::string& error, bool ignore_invalid_keys)
             {
                 LOCK(cs_args);
                 m_config_args.erase("-includeconf");
-                m_config_args.erase(std::string("-") + GetChainName() + ".includeconf");
+                m_config_args.erase(std::string("-") + chain_id + ".includeconf");
             }
 
             for (const std::string& to_include : includeconf) {
@@ -874,14 +876,21 @@ bool ArgsManager::ReadConfigFiles(std::string& error, bool ignore_invalid_keys)
                     LogPrintf("Included configuration file %s\n", to_include.c_str());
                 } else {
                     fprintf(stderr, "Failed to include configuration file %s\n", to_include.c_str());
+                    return false;
                 }
             }
 
             // Warn about recursive -includeconf
             includeconf = GetArgs("-includeconf");
             {
-                std::vector<std::string> includeconf_net(GetArgs(std::string("-") + GetChainName() + ".includeconf"));
+                std::vector<std::string> includeconf_net(GetArgs(std::string("-") + chain_id + ".includeconf"));
                 includeconf.insert(includeconf.end(), includeconf_net.begin(), includeconf_net.end());
+                std::string chain_id_2;
+                if (!GetChainName(chain_id_2, error)) return false;
+                if (chain_id_2 != chain_id) {
+                    includeconf_net = GetArgs(std::string("-") + chain_id_2 + ".includeconf");
+                    includeconf.insert(includeconf.end(), includeconf_net.begin(), includeconf_net.end());
+                }
             }
             for (const std::string& to_include : includeconf) {
                 fprintf(stderr, "warning: -includeconf cannot be used from included files; ignoring -includeconf=%s\n", to_include.c_str());
@@ -898,20 +907,26 @@ bool ArgsManager::ReadConfigFiles(std::string& error, bool ignore_invalid_keys)
     return true;
 }
 
-std::string ArgsManager::GetChainName() const
+bool ArgsManager::GetChainName(std::string& chain_id, std::string& error) const
 {
     bool fRegTest = ArgsManagerHelper::GetNetBoolArg(*this, "-regtest");
     bool fTestNet = ArgsManagerHelper::GetNetBoolArg(*this, "-testnet");
-    bool is_chain_arg_set = gArgs.IsArgSet("-chain");
+    bool is_chain_arg_set = gArgs.IsArgSet("-chain"); //ArgsManagerHelper
 
     if (is_chain_arg_set + fRegTest + fTestNet > 1) {
-        throw std::runtime_error("Invalid combination of -regtest, -testnet and -chain. Can use at most one.");
+        error = "Invalid combination of -regtest, -testnet and -chain. Can use at most one.";
+        return false;
     }
-    if (fRegTest)
-        return CBaseChainParams::REGTEST;
-    if (fTestNet)
-        return CBaseChainParams::TESTNET;
-    return gArgs.GetArg("-chain", CBaseChainParams::MAIN);
+    if (fRegTest) {
+        chain_id = CBaseChainParams::REGTEST;
+        return true;
+    }
+    if (fTestNet) {
+        chain_id = CBaseChainParams::TESTNET;
+        return true;
+    }
+    chain_id = gArgs.GetArg("-chain", CBaseChainParams::MAIN);
+    return true;
 }
 
 #ifndef WIN32

@@ -672,10 +672,9 @@ int main(int argc, char *argv[])
     // - Needs to be done before createOptionsModel
 
     // Check for -chain, -testnet or -regtest parameter (Params() calls are only valid after this clause)
-    try {
-        node->selectParams(gArgs.GetChainName());
-    } catch(std::exception &e) {
-        QMessageBox::critical(0, QObject::tr(PACKAGE_NAME), QObject::tr("Error: %1").arg(e.what()));
+    std::string chain_id;
+    if (!gArgs.GetChainName(chain_id, error) || !node->setParams(chain_id, error)) {
+        QMessageBox::critical(0, QObject::tr(PACKAGE_NAME), QObject::tr("Error: %1").arg(QString::fromStdString(error)));
         return EXIT_FAILURE;
     }
 #ifdef ENABLE_WALLET

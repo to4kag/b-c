@@ -253,10 +253,10 @@ public:
     void ForceSetArg(const std::string& strArg, const std::string& strValue);
 
     /**
-     * Looks for -regtest, -testnet and returns the appropriate BIP70 chain name.
-     * @return CBaseChainParams::MAIN by default; raises runtime error if an invalid combination is given.
+     * Looks for -chain, -regtest, -testnet and returns the appropriate BIP70 chain name.
+     * @return CBaseChainParams::MAIN by default
      */
-    std::string GetChainName() const;
+    bool GetChainName(std::string& chain_id, std::string& error) const;
 
     /**
      * Add argument

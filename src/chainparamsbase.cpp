@@ -38,12 +38,16 @@ std::unique_ptr<CBaseChainParams> CreateBaseChainParams(const std::string& chain
         return MakeUnique<CBaseChainParams>("testnet3", 18332);
     else if (chain == CBaseChainParams::REGTEST)
         return MakeUnique<CBaseChainParams>("regtest", 18443);
-    else
-        throw std::runtime_error(strprintf("%s: Unknown chain %s.", __func__, chain));
+    return {};
 }
 
-void SelectBaseParams(const std::string& chain)
+bool SetBaseParams(const std::string& chain, std::string& error)
 {
     globalChainBaseParams = CreateBaseChainParams(chain);
+    if (!globalChainBaseParams) {
+        error = strprintf("Unknown chain %s.", chain);
+        return false;
+    }
     gArgs.SelectConfigNetwork(chain);
+    return true;
 }
