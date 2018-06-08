@@ -465,7 +465,7 @@ BOOST_AUTO_TEST_CASE(rolling_bloom)
     CRollingBloomFilter rb1(100, 0.01);
 
     // Overfill:
-    static const int DATASIZE=399;
+    static constexpr int DATASIZE=399;
     std::vector<unsigned char> data[DATASIZE];
     for (int i = 0; i < DATASIZE; i++) {
         data[i] = RandomData();

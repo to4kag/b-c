@@ -1640,7 +1640,7 @@ static inline bool SetHasKeys(const std::set<T>& set, const Tk& key, const Args&
 }
 
 // outpoint (needed for the utxo index) + nHeight + fCoinBase
-static constexpr size_t PER_UTXO_OVERHEAD = sizeof(COutPoint) + sizeof(uint32_t) + sizeof(bool);
+constexpr size_t PER_UTXO_OVERHEAD = sizeof(COutPoint) + sizeof(uint32_t) + sizeof(bool);
 
 static UniValue getblockstats(const JSONRPCRequest& request)
 {

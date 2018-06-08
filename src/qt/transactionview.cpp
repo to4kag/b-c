@@ -113,7 +113,7 @@ TransactionView::TransactionView(const PlatformStyle *platformStyle, QWidget *pa
     hlayout->addWidget(amountWidget);
 
     // Delay before filtering transactions in ms
-    static const int input_filter_delay = 200;
+    static constexpr int input_filter_delay = 200;
 
     QTimer* amount_typing_delay = new QTimer(this);
     amount_typing_delay->setSingleShot(true);

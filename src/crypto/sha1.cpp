@@ -37,10 +37,10 @@ void inline Initialize(uint32_t* s)
     s[4] = 0xC3D2E1F0ul;
 }
 
-const uint32_t k1 = 0x5A827999ul;
-const uint32_t k2 = 0x6ED9EBA1ul;
-const uint32_t k3 = 0x8F1BBCDCul;
-const uint32_t k4 = 0xCA62C1D6ul;
+constexpr uint32_t k1 = 0x5A827999ul;
+constexpr uint32_t k2 = 0x6ED9EBA1ul;
+constexpr uint32_t k3 = 0x8F1BBCDCul;
+constexpr uint32_t k4 = 0xCA62C1D6ul;
 
 /** Perform a SHA-1 transformation, processing a 64-byte chunk. */
 void Transform(uint32_t* s, const unsigned char* chunk)

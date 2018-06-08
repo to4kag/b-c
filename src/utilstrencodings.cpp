@@ -141,7 +141,7 @@ std::string EncodeBase64(const std::string& str)
 
 std::vector<unsigned char> DecodeBase64(const char* p, bool* pfInvalid)
 {
-    static const int decode64_table[256] =
+    static constexpr int decode64_table[256] =
     {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -210,7 +210,7 @@ std::string EncodeBase32(const std::string& str)
 
 std::vector<unsigned char> DecodeBase32(const char* p, bool* pfInvalid)
 {
-    static const int decode32_table[256] =
+    static constexpr int decode32_table[256] =
     {
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
         -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
@@ -433,7 +433,7 @@ int atoi(const std::string& str)
  *  9223372036854775807  (1<<63)-1  (max int64_t)
  *  9999999999999999999  1^19-1     (would overflow)
  */
-static const int64_t UPPER_BOUND = 1000000000000000000LL - 1LL;
+constexpr int64_t UPPER_BOUND = 1000000000000000000LL - 1LL;
 
 /** Helper function for ParseFixedPoint */
 static inline bool ProcessMantissaDigit(char ch, int64_t &mantissa, int &mantissa_tzeros)

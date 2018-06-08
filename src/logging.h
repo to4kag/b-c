@@ -16,9 +16,9 @@
 #include <string>
 #include <vector>
 
-static const bool DEFAULT_LOGTIMEMICROS = false;
-static const bool DEFAULT_LOGIPS        = false;
-static const bool DEFAULT_LOGTIMESTAMPS = true;
+constexpr bool DEFAULT_LOGTIMEMICROS = false;
+constexpr bool DEFAULT_LOGIPS        = false;
+constexpr bool DEFAULT_LOGTIMESTAMPS = true;
 extern const char * const DEFAULT_DEBUGLOGFILE;
 
 extern bool fLogIPs;

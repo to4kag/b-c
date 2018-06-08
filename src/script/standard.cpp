@@ -58,7 +58,7 @@ static bool MatchPayToPubkeyHash(const CScript& script, valtype& pubkeyhash)
 }
 
 /** Test for "small positive integer" script opcodes - OP_1 through OP_16. */
-static constexpr bool IsSmallInteger(opcodetype opcode)
+constexpr bool IsSmallInteger(opcodetype opcode)
 {
     return opcode >= OP_1 && opcode <= OP_16;
 }

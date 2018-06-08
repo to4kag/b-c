@@ -110,7 +110,7 @@ void ModalOverlay::tipUpdate(int count, const QDateTime& blockDate, double nVeri
             ui->expectedTimeLeft->setText(QObject::tr("unknown"));
         }
 
-        static const int MAX_SAMPLES = 5000;
+        static constexpr int MAX_SAMPLES = 5000;
         if (blockProcessTime.count() > MAX_SAMPLES) {
             blockProcessTime.remove(MAX_SAMPLES, blockProcessTime.count() - MAX_SAMPLES);
         }

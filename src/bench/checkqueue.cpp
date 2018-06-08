@@ -12,11 +12,11 @@
 #include <random.h>
 
 
-static const int MIN_CORES = 2;
-static const size_t BATCHES = 101;
-static const size_t BATCH_SIZE = 30;
-static const int PREVECTOR_SIZE = 28;
-static const unsigned int QUEUE_BATCH_SIZE = 128;
+constexpr int MIN_CORES = 2;
+constexpr size_t BATCHES = 101;
+constexpr size_t BATCH_SIZE = 30;
+constexpr int PREVECTOR_SIZE = 28;
+constexpr unsigned int QUEUE_BATCH_SIZE = 128;
 
 // This Benchmark tests the CheckQueue with a slightly realistic workload,
 // where checks all contain a prevector that is indirect 50% of the time

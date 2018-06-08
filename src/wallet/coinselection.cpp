@@ -57,7 +57,7 @@ struct {
  *        overhead (version, locktime, marker and flag)
  */
 
-static const size_t TOTAL_TRIES = 100000;
+constexpr size_t TOTAL_TRIES = 100000;
 
 bool SelectCoinsBnB(std::vector<CInputCoin>& utxo_pool, const CAmount& target_value, const CAmount& cost_of_change, std::set<CInputCoin>& out_set, CAmount& value_ret, CAmount not_input_fees)
 {

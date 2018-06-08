@@ -77,7 +77,7 @@ static inline int64_t GetPerformanceCounter()
 #if defined(__x86_64__) || defined(__amd64__) || defined(__i386__)
 static std::atomic<bool> hwrand_initialized{false};
 static bool rdrand_supported = false;
-static constexpr uint32_t CPUID_F1_ECX_RDRAND = 0x40000000;
+constexpr uint32_t CPUID_F1_ECX_RDRAND = 0x40000000;
 static void RDRandInit()
 {
     uint32_t eax, ebx, ecx, edx;
@@ -254,7 +254,7 @@ void GetOSRand(unsigned char *ent32)
     /* FreeBSD and similar. It is possible for the call to return less
      * bytes than requested, so need to read in a loop.
      */
-    static const int name[2] = {CTL_KERN, KERN_ARND};
+    static constexpr int name[2] = {CTL_KERN, KERN_ARND};
     int have = 0;
     do {
         size_t len = NUM_OS_RANDOM_BYTES - have;

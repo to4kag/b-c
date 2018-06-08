@@ -10,9 +10,9 @@
 #include <random.h>
 
 //! target minimum change amount
-static const CAmount MIN_CHANGE = CENT;
+constexpr CAmount MIN_CHANGE = CENT;
 //! final minimum change amount after paying for fees
-static const CAmount MIN_FINAL_CHANGE = MIN_CHANGE/2;
+constexpr CAmount MIN_FINAL_CHANGE = MIN_CHANGE/2;
 
 class CInputCoin {
 public:
