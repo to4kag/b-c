@@ -6,15 +6,18 @@
 #ifndef BITCOIN_UI_INTERFACE_H
 #define BITCOIN_UI_INTERFACE_H
 
+#include <functional>
 #include <memory>
 #include <stdint.h>
 #include <string>
 
-#include <boost/signals2/last_value.hpp>
-#include <boost/signals2/signal.hpp>
-
 class CWallet;
 class CBlockIndex;
+namespace boost {
+namespace signals2 {
+class connection;
+}
+} // namespace boost
 
 /** General change type (added, updated, removed). */
 enum ChangeType
@@ -72,43 +75,69 @@ public:
         MSG_ERROR = (ICON_ERROR | BTN_OK | MODAL)
     };
 
+#define ADD_SIGNALS_DECL_WRAPPER(signal_name)                                              \
+    boost::signals2::connection signal_name##_connect(std::function<signal_name##Sig> fn); \
+    void signal_name##_disconnect(std::function<signal_name##Sig> fn);
+
     /** Show message box. */
-    boost::signals2::signal<bool (const std::string& message, const std::string& caption, unsigned int style), boost::signals2::last_value<bool> > ThreadSafeMessageBox;
+    bool  ThreadSafeMessageBox          (const std::string& message, const std::string& caption, unsigned int style);
+    using ThreadSafeMessageBoxSig = bool(const std::string& message, const std::string& caption, unsigned int style);
+    ADD_SIGNALS_DECL_WRAPPER(ThreadSafeMessageBox);
 
     /** If possible, ask the user a question. If not, falls back to ThreadSafeMessageBox(noninteractive_message, caption, style) and returns false. */
-    boost::signals2::signal<bool (const std::string& message, const std::string& noninteractive_message, const std::string& caption, unsigned int style), boost::signals2::last_value<bool> > ThreadSafeQuestion;
+    bool  ThreadSafeQuestion          (const std::string& message, const std::string& noninteractive_message, const std::string& caption, unsigned int style);
+    using ThreadSafeQuestionSig = bool(const std::string& message, const std::string& noninteractive_message, const std::string& caption, unsigned int style);
+    ADD_SIGNALS_DECL_WRAPPER(ThreadSafeQuestion);
 
     /** Progress message during initialization. */
-    boost::signals2::signal<void (const std::string &message)> InitMessage;
+    void  InitMessage          (const std::string& message);
+    using InitMessageSig = void(const std::string& message);
+    ADD_SIGNALS_DECL_WRAPPER(InitMessage);
 
     /** Number of network connections changed. */
-    boost::signals2::signal<void (int newNumConnections)> NotifyNumConnectionsChanged;
+    void  NotifyNumConnectionsChanged          (int newNumConnections);
+    using NotifyNumConnectionsChangedSig = void(int newNumConnections);
+    ADD_SIGNALS_DECL_WRAPPER(NotifyNumConnectionsChanged);
 
     /** Network activity state changed. */
-    boost::signals2::signal<void (bool networkActive)> NotifyNetworkActiveChanged;
+    void  NotifyNetworkActiveChanged          (bool networkActive);
+    using NotifyNetworkActiveChangedSig = void(bool networkActive);
+    ADD_SIGNALS_DECL_WRAPPER(NotifyNetworkActiveChanged);
 
     /**
      * Status bar alerts changed.
      */
-    boost::signals2::signal<void ()> NotifyAlertChanged;
+    void  NotifyAlertChanged          ();
+    using NotifyAlertChangedSig = void();
+    ADD_SIGNALS_DECL_WRAPPER(NotifyAlertChanged);
 
     /** A wallet has been loaded. */
-    boost::signals2::signal<void (std::shared_ptr<CWallet> wallet)> LoadWallet;
+    void  LoadWallet          (std::shared_ptr<CWallet> wallet);
+    using LoadWalletSig = void(std::shared_ptr<CWallet> wallet);
+    ADD_SIGNALS_DECL_WRAPPER(LoadWallet);
 
     /**
      * Show progress e.g. for verifychain.
      * resume_possible indicates shutting down now will result in the current progress action resuming upon restart.
      */
-    boost::signals2::signal<void (const std::string &title, int nProgress, bool resume_possible)> ShowProgress;
+    void  ShowProgress          (const std::string& title, int nProgress, bool resume_possible);
+    using ShowProgressSig = void(const std::string& title, int nProgress, bool resume_possible);
+    ADD_SIGNALS_DECL_WRAPPER(ShowProgress);
 
     /** New block has been accepted */
-    boost::signals2::signal<void (bool, const CBlockIndex *)> NotifyBlockTip;
+    void  NotifyBlockTip          (bool, const CBlockIndex*);
+    using NotifyBlockTipSig = void(bool, const CBlockIndex*);
+    ADD_SIGNALS_DECL_WRAPPER(NotifyBlockTip);
 
     /** Best header has changed */
-    boost::signals2::signal<void (bool, const CBlockIndex *)> NotifyHeaderTip;
+    void  NotifyHeaderTip          (bool, const CBlockIndex*);
+    using NotifyHeaderTipSig = void(bool, const CBlockIndex*);
+    ADD_SIGNALS_DECL_WRAPPER(NotifyHeaderTip);
 
     /** Banlist did change. */
-    boost::signals2::signal<void (void)> BannedListChanged;
+    void  BannedListChanged          (void);
+    using BannedListChangedSig = void(void);
+    ADD_SIGNALS_DECL_WRAPPER(BannedListChanged);
 };
 
 /** Show warning message **/
