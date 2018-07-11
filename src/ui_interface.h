@@ -73,42 +73,53 @@ public:
     };
 
     /** Show message box. */
-    boost::signals2::signal<bool (const std::string& message, const std::string& caption, unsigned int style), boost::signals2::last_value<bool> > ThreadSafeMessageBox;
+    using ThreadSafeMessageBoxSig = bool(const std::string& message, const std::string& caption, unsigned int style);
+    boost::signals2::signal<ThreadSafeMessageBoxSig, boost::signals2::last_value<bool>> ThreadSafeMessageBox;
 
     /** If possible, ask the user a question. If not, falls back to ThreadSafeMessageBox(noninteractive_message, caption, style) and returns false. */
-    boost::signals2::signal<bool (const std::string& message, const std::string& noninteractive_message, const std::string& caption, unsigned int style), boost::signals2::last_value<bool> > ThreadSafeQuestion;
+    using ThreadSafeQuestionSig = bool(const std::string& message, const std::string& noninteractive_message, const std::string& caption, unsigned int style);
+    boost::signals2::signal<ThreadSafeQuestionSig, boost::signals2::last_value<bool>> ThreadSafeQuestion;
 
     /** Progress message during initialization. */
-    boost::signals2::signal<void (const std::string &message)> InitMessage;
+    using InitMessageSig = void(const std::string& message);
+    boost::signals2::signal<InitMessageSig> InitMessage;
 
     /** Number of network connections changed. */
-    boost::signals2::signal<void (int newNumConnections)> NotifyNumConnectionsChanged;
+    using NotifyNumConnectionsChangedSig = void(int newNumConnections);
+    boost::signals2::signal<NotifyNumConnectionsChangedSig> NotifyNumConnectionsChanged;
 
     /** Network activity state changed. */
-    boost::signals2::signal<void (bool networkActive)> NotifyNetworkActiveChanged;
+    using NotifyNetworkActiveChangedSig = void(bool networkActive);
+    boost::signals2::signal<NotifyNetworkActiveChangedSig> NotifyNetworkActiveChanged;
 
     /**
      * Status bar alerts changed.
      */
-    boost::signals2::signal<void ()> NotifyAlertChanged;
+    using NotifyAlertChangedSig = void();
+    boost::signals2::signal<NotifyAlertChangedSig> NotifyAlertChanged;
 
     /** A wallet has been loaded. */
-    boost::signals2::signal<void (std::shared_ptr<CWallet> wallet)> LoadWallet;
+    using LoadWalletSig = void(std::shared_ptr<CWallet> wallet);
+    boost::signals2::signal<LoadWalletSig> LoadWallet;
 
     /**
      * Show progress e.g. for verifychain.
      * resume_possible indicates shutting down now will result in the current progress action resuming upon restart.
      */
-    boost::signals2::signal<void (const std::string &title, int nProgress, bool resume_possible)> ShowProgress;
+    using ShowProgressSig = void(const std::string& title, int nProgress, bool resume_possible);
+    boost::signals2::signal<ShowProgressSig> ShowProgress;
 
     /** New block has been accepted */
-    boost::signals2::signal<void (bool, const CBlockIndex *)> NotifyBlockTip;
+    using NotifyBlockTipSig = void(bool, const CBlockIndex*);
+    boost::signals2::signal<NotifyBlockTipSig> NotifyBlockTip;
 
     /** Best header has changed */
-    boost::signals2::signal<void (bool, const CBlockIndex *)> NotifyHeaderTip;
+    using NotifyHeaderTipSig = void(bool, const CBlockIndex*);
+    boost::signals2::signal<NotifyHeaderTipSig> NotifyHeaderTip;
 
     /** Banlist did change. */
-    boost::signals2::signal<void (void)> BannedListChanged;
+    using BannedListChangedSig = void(void);
+    boost::signals2::signal<BannedListChangedSig> BannedListChanged;
 };
 
 /** Show warning message **/
