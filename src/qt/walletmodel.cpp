@@ -31,7 +31,6 @@
 #include <QSet>
 #include <QTimer>
 
-
 WalletModel::WalletModel(std::unique_ptr<interfaces::Wallet> wallet, interfaces::Node& node, const PlatformStyle *platformStyle, OptionsModel *_optionsModel, QObject *parent) :
     QObject(parent), m_wallet(std::move(wallet)), m_node(node), optionsModel(_optionsModel), addressTableModel(nullptr),
     transactionTableModel(nullptr),
@@ -431,13 +430,12 @@ static void NotifyCanGetAddressesChanged(WalletModel* walletmodel)
 void WalletModel::subscribeToCoreSignals()
 {
     // Connect signals to wallet
-    m_handler_unload = m_wallet->handleUnload(std::bind(&NotifyUnload, this));
-    m_handler_status_changed = m_wallet->handleStatusChanged(std::bind(&NotifyKeyStoreStatusChanged, this));
-    m_handler_address_book_changed = m_wallet->handleAddressBookChanged(std::bind(NotifyAddressBookChanged, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
-    m_handler_transaction_changed = m_wallet->handleTransactionChanged(std::bind(NotifyTransactionChanged, this, std::placeholders::_1, std::placeholders::_2));
-    m_handler_show_progress = m_wallet->handleShowProgress(std::bind(ShowProgress, this, std::placeholders::_1, std::placeholders::_2));
-    m_handler_watch_only_changed = m_wallet->handleWatchOnlyChanged(std::bind(NotifyWatchonlyChanged, this, std::placeholders::_1));
-    m_handler_can_get_addrs_changed = m_wallet->handleCanGetAddressesChanged(boost::bind(NotifyCanGetAddressesChanged, this));
+    m_handler_unload = m_wallet->handleUnload([this] { NotifyUnload(this); });
+    m_handler_status_changed = m_wallet->handleStatusChanged([this] { NotifyKeyStoreStatusChanged(this); });
+    m_handler_address_book_changed = m_wallet->handleAddressBookChanged([this](const CTxDestination& address, const std::string& label, bool isMine, const std::string& purpose, ChangeType status) { NotifyAddressBookChanged(this, address, label, isMine, purpose, status); });
+    m_handler_transaction_changed = m_wallet->handleTransactionChanged([this](const uint256& hash, ChangeType status) { NotifyTransactionChanged(this, hash, status); });
+    m_handler_show_progress = m_wallet->handleShowProgress([this](const std::string& title, int nProgress) { ShowProgress(this, title, nProgress); });
+    m_handler_watch_only_changed = m_wallet->handleWatchOnlyChanged([this](bool fHaveWatchonly) { NotifyWatchonlyChanged(this, fHaveWatchonly); });
 }
 
 void WalletModel::unsubscribeFromCoreSignals()

@@ -252,13 +252,13 @@ static void BlockTipChanged(ClientModel *clientmodel, bool initialSync, int heig
 void ClientModel::subscribeToCoreSignals()
 {
     // Connect signals to client
-    m_handler_show_progress = m_node.handleShowProgress(std::bind(ShowProgress, this, std::placeholders::_1, std::placeholders::_2));
-    m_handler_notify_num_connections_changed = m_node.handleNotifyNumConnectionsChanged(std::bind(NotifyNumConnectionsChanged, this, std::placeholders::_1));
-    m_handler_notify_network_active_changed = m_node.handleNotifyNetworkActiveChanged(std::bind(NotifyNetworkActiveChanged, this, std::placeholders::_1));
-    m_handler_notify_alert_changed = m_node.handleNotifyAlertChanged(std::bind(NotifyAlertChanged, this));
-    m_handler_banned_list_changed = m_node.handleBannedListChanged(std::bind(BannedListChanged, this));
-    m_handler_notify_block_tip = m_node.handleNotifyBlockTip(std::bind(BlockTipChanged, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, false));
-    m_handler_notify_header_tip = m_node.handleNotifyHeaderTip(std::bind(BlockTipChanged, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, true));
+    m_handler_show_progress = m_node.handleShowProgress([this](const std::string& title, int nProgress, bool resume_possible) { ShowProgress(this, title, nProgress); });
+    m_handler_notify_num_connections_changed = m_node.handleNotifyNumConnectionsChanged([this](int newNumConnections) { NotifyNumConnectionsChanged(this, newNumConnections); });
+    m_handler_notify_network_active_changed = m_node.handleNotifyNetworkActiveChanged([this](bool networkActive) { NotifyNetworkActiveChanged(this, networkActive); });
+    m_handler_notify_alert_changed = m_node.handleNotifyAlertChanged([this] { NotifyAlertChanged(this); });
+    m_handler_banned_list_changed = m_node.handleBannedListChanged([this] { BannedListChanged(this); });
+    m_handler_notify_block_tip = m_node.handleNotifyBlockTip([this](bool initialSync, int height, int64_t blockTime, double verificationProgress) { BlockTipChanged(this, initialSync, height, blockTime, verificationProgress, false); });
+    m_handler_notify_header_tip = m_node.handleNotifyHeaderTip([this](bool initialSync, int height, int64_t blockTime, double verificationProgress) { BlockTipChanged(this, initialSync, height, blockTime, verificationProgress, true); });
 }
 
 void ClientModel::unsubscribeFromCoreSignals()

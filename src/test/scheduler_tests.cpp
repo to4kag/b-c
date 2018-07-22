@@ -20,7 +20,7 @@ static void microTask(CScheduler& s, boost::mutex& mutex, int& counter, int delt
     }
     boost::chrono::system_clock::time_point noTime = boost::chrono::system_clock::time_point::min();
     if (rescheduleTime != noTime) {
-        CScheduler::Function f = std::bind(&microTask, std::ref(s), std::ref(mutex), std::ref(counter), -delta + 1, noTime);
+        CScheduler::Function f = [&, delta, noTime] { microTask(s, mutex, counter, -delta + 1, noTime); };
         s.schedule(f, rescheduleTime);
     }
 }
@@ -68,9 +68,10 @@ BOOST_AUTO_TEST_CASE(manythreads)
         boost::chrono::system_clock::time_point t = now + boost::chrono::microseconds(randomMsec(rng));
         boost::chrono::system_clock::time_point tReschedule = now + boost::chrono::microseconds(500 + randomMsec(rng));
         int whichCounter = zeroToNine(rng);
-        CScheduler::Function f = std::bind(&microTask, std::ref(microTasks),
-                                             std::ref(counterMutex[whichCounter]), std::ref(counter[whichCounter]),
-                                             randomDelta(rng), tReschedule);
+        boost::mutex& theMutex = counterMutex[whichCounter];
+        int& theCounter = counter[whichCounter];
+        int rand = randomDelta(rng);
+        CScheduler::Function f = [&, rand, tReschedule] { microTask(microTasks, theMutex, theCounter, rand, tReschedule); };
         microTasks.schedule(f, t);
     }
     nTasks = microTasks.getQueueInfo(first, last);
@@ -81,21 +82,22 @@ BOOST_AUTO_TEST_CASE(manythreads)
     // As soon as these are created they will start running and servicing the queue
     boost::thread_group microThreads;
     for (int i = 0; i < 5; i++)
-        microThreads.create_thread(std::bind(&CScheduler::serviceQueue, &microTasks));
+        microThreads.create_thread([&] { microTasks.serviceQueue(); });
 
     MicroSleep(600);
     now = boost::chrono::system_clock::now();
 
     // More threads and more tasks:
     for (int i = 0; i < 5; i++)
-        microThreads.create_thread(std::bind(&CScheduler::serviceQueue, &microTasks));
+        microThreads.create_thread([&] { microTasks.serviceQueue(); });
     for (int i = 0; i < 100; i++) {
         boost::chrono::system_clock::time_point t = now + boost::chrono::microseconds(randomMsec(rng));
         boost::chrono::system_clock::time_point tReschedule = now + boost::chrono::microseconds(500 + randomMsec(rng));
         int whichCounter = zeroToNine(rng);
-        CScheduler::Function f = std::bind(&microTask, std::ref(microTasks),
-                                             std::ref(counterMutex[whichCounter]), std::ref(counter[whichCounter]),
-                                             randomDelta(rng), tReschedule);
+        boost::mutex& theMutex = counterMutex[whichCounter];
+        int& theCounter = counter[whichCounter];
+        int rand = randomDelta(rng);
+        CScheduler::Function f = [&, rand, tReschedule] { microTask(microTasks, theMutex, theCounter, rand, tReschedule); };
         microTasks.schedule(f, t);
     }
 

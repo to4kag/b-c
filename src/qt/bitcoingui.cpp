@@ -1321,8 +1321,8 @@ static bool ThreadSafeMessageBox(BitcoinGUI* gui, const std::string& message, co
 void BitcoinGUI::subscribeToCoreSignals()
 {
     // Connect signals to client
-    m_handler_message_box = m_node.handleMessageBox(std::bind(ThreadSafeMessageBox, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    m_handler_question = m_node.handleQuestion(std::bind(ThreadSafeMessageBox, this, std::placeholders::_1, std::placeholders::_3, std::placeholders::_4));
+    m_handler_message_box = m_node.handleMessageBox([this](const std::string& message, const std::string& caption, unsigned int style) -> bool { return ThreadSafeMessageBox(this, message, caption, style); });
+    m_handler_question = m_node.handleQuestion([this](const std::string& message, const std::string& non_interactive_message, const std::string& caption, unsigned int style) -> bool { return ThreadSafeMessageBox(this, message, caption, style); });
 }
 
 void BitcoinGUI::unsubscribeFromCoreSignals()

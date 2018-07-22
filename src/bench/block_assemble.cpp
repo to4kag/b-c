@@ -78,7 +78,7 @@ static void AssembleBlock(benchmark::State& state)
         ::pcoinsTip.reset(new CCoinsViewCache(pcoinsdbview.get()));
 
         const CChainParams& chainparams = Params();
-        thread_group.create_thread(std::bind(&CScheduler::serviceQueue, &scheduler));
+        thread_group.create_thread([&] { scheduler.serviceQueue(); });
         GetMainSignals().RegisterBackgroundSignalScheduler(scheduler);
         LoadGenesisBlock(chainparams);
         CValidationState state;
