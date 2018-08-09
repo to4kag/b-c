@@ -7,7 +7,6 @@ import re
 import fnmatch
 import sys
 import subprocess
-import datetime
 import os
 
 ################################################################################
@@ -312,8 +311,7 @@ def call_git_log(filename):
 
 def get_git_change_years(filename):
     git_log_lines = call_git_log(filename)
-    if len(git_log_lines) == 0:
-        return [datetime.date.today().year]
+    assert git_log_lines
     # timestamp is in ISO 8601 format. e.g. "2016-09-05 14:25:32 -0600"
     return [line.split(' ')[0].split('-')[0] for line in git_log_lines]
 
