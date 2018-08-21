@@ -73,7 +73,7 @@ static CDataStream AddrmanToStream(CAddrManSerializationMock& _addrman)
     return CDataStream(vchData, SER_DISK, CLIENT_VERSION);
 }
 
-BOOST_FIXTURE_TEST_SUITE(net_tests, BasicTestingSetup)
+BOOST_FIXTURE_TEST_SUITE(net_tests, TestingSetup)
 
 BOOST_AUTO_TEST_CASE(cnode_listen_port)
 {
@@ -167,6 +167,10 @@ BOOST_AUTO_TEST_CASE(caddrdb_read_corrupted)
 
 BOOST_AUTO_TEST_CASE(cnode_simple_test)
 {
+    const auto local_services_0 = g_connman->GetLocalServices();
+    CConnman::Options options;
+    options.nLocalServices = ServiceFlags(NODE_NETWORK);
+
     SOCKET hSocket = INVALID_SOCKET;
     NodeId id = 0;
     int height = 0;
@@ -179,14 +183,17 @@ BOOST_AUTO_TEST_CASE(cnode_simple_test)
     bool fInboundIn = false;
 
     // Test that fFeeler is false by default.
-    std::unique_ptr<CNode> pnode1(new CNode(id++, NODE_NETWORK, height, hSocket, addr, 0, 0, CAddress(), pszDest, fInboundIn));
+    std::unique_ptr<CNode> pnode1(new CNode(id++, height, hSocket, addr, 0, 0, CAddress(), pszDest, fInboundIn));
     BOOST_CHECK(pnode1->fInbound == false);
     BOOST_CHECK(pnode1->fFeeler == false);
 
     fInboundIn = true;
-    std::unique_ptr<CNode> pnode2(new CNode(id++, NODE_NETWORK, height, hSocket, addr, 1, 1, CAddress(), pszDest, fInboundIn));
+    std::unique_ptr<CNode> pnode2(new CNode(id++, height, hSocket, addr, 1, 1, CAddress(), pszDest, fInboundIn));
     BOOST_CHECK(pnode2->fInbound == true);
     BOOST_CHECK(pnode2->fFeeler == false);
+
+    options.nLocalServices = local_services_0;
+    g_connman->Init(options);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
