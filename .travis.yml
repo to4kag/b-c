@@ -103,7 +103,7 @@ jobs:
         DEP_OPTS="NO_QT=1"
         RUN_TESTS=true
         GOAL="install"
-        BITCOIN_CONFIG="--enable-zmq --enable-glibc-back-compat --enable-reduce-exports --enable-werror LDFLAGS=-static-libstdc++"
+        BITCOIN_CONFIG="--enable-zmq --enable-glibc-back-compat --enable-reduce-exports LDFLAGS=-static-libstdc++"
         CONFIG_SHELL="/bin/dash"
 # x86_64 Linux (uses qt5 dev package instead of depends Qt to speed up build and avoid timeout)
     - stage: test
@@ -114,16 +114,16 @@ jobs:
         RUN_TESTS=true
         RUN_BENCH=true
         GOAL="install"
-        BITCOIN_CONFIG="--enable-zmq --with-gui=qt5 --enable-glibc-back-compat --enable-reduce-exports --enable-werror --enable-debug CXXFLAGS=\"-g0 -O2\""
+        BITCOIN_CONFIG="--enable-zmq --with-gui=qt5 --enable-glibc-back-compat --enable-reduce-exports --enable-debug CXXFLAGS=\"-g0 -O2\""
 # x86_64 Linux (Qt5 & system libs)
     - stage: test
       env: >-
         HOST=x86_64-unknown-linux-gnu
-        PACKAGES="clang python3-zmq qtbase5-dev qttools5-dev-tools libssl1.0-dev libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-test-dev libboost-thread-dev libdb5.3++-dev libminiupnpc-dev libzmq3-dev libprotobuf-dev protobuf-compiler libqrencode-dev"
+        PACKAGES="python3-zmq qtbase5-dev qttools5-dev-tools libssl1.0-dev libevent-dev bsdmainutils libboost-system-dev libboost-filesystem-dev libboost-chrono-dev libboost-test-dev libboost-thread-dev libdb5.3++-dev libminiupnpc-dev libzmq3-dev libprotobuf-dev protobuf-compiler libqrencode-dev"
         NO_DEPENDS=1
         RUN_TESTS=true
         GOAL="install"
-        BITCOIN_CONFIG="--enable-zmq --with-incompatible-bdb --enable-glibc-back-compat --enable-werror --enable-reduce-exports --with-gui=qt5 CPPFLAGS=-DDEBUG_LOCKORDER CC=clang CXX=clang++"
+        BITCOIN_CONFIG="--enable-zmq --with-incompatible-bdb --enable-glibc-back-compat --enable-reduce-exports --with-gui=qt5 CPPFLAGS=-DDEBUG_LOCKORDER"
 # x86_64 Linux, No wallet
     - stage: test
       env: >-
