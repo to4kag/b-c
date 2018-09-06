@@ -62,6 +62,10 @@ fi
 
 if [ "$RUN_FUNCTIONAL_TESTS" = "true" ]; then
   BEGIN_FOLD functional-tests
-  DOCKER_EXEC test/functional/test_runner.py --combinedlogslen=4000 --coverage --quiet --failfast ${extended}
+  BITCOIND=""
+  if [ "$RUN_FUNCTIONAL_TESTS_WITH_GUI" = "true" ]; then
+      BITCOIND="bitcoin-qt"
+  fi
+  DOCKER_EXEC BITCOIND=$BITCOIND test/functional/test_runner.py --combinedlogslen=4000 --coverage --quiet --failfast ${extended}
   END_FOLD
 fi
