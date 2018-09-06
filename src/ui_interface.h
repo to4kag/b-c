@@ -121,10 +121,12 @@ public:
 };
 
 /** Show warning message **/
-void InitWarning(const std::string& str);
+void UIWarning(const std::string& str);
+#define InitWarning UIWarning
 
 /** Show error message **/
-bool InitError(const std::string& str);
+bool UIError(const std::string& str);
+#define InitError UIError
 
 std::string AmountHighWarn(const std::string& optname);
 

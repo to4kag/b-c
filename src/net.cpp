@@ -2237,8 +2237,8 @@ bool CConnman::Bind(const CService &addr, unsigned int flags) {
         return false;
     std::string strError;
     if (!BindListenPort(addr, strError, (flags & BF_WHITELIST) != 0)) {
-        if ((flags & BF_REPORT_ERROR) && clientInterface) {
-            clientInterface->ThreadSafeMessageBox(strError, "", CClientUIInterface::MSG_ERROR);
+        if (flags & BF_REPORT_ERROR) {
+            UIError(strError);
         }
         return false;
     }
@@ -2279,12 +2279,8 @@ bool CConnman::Start(CScheduler& scheduler, const Options& connOptions)
     }
 
     if (fListen && !InitBinds(connOptions.vBinds, connOptions.vWhiteBinds)) {
-        if (clientInterface) {
-            clientInterface->ThreadSafeMessageBox(
-                _("Failed to listen on any port. Use -listen=0 if you want this."),
-                "", CClientUIInterface::MSG_ERROR);
-        }
-        return false;
+        return InitError(
+            _("Failed to listen on any port. Use -listen=0 if you want this."));
     }
 
     for (const auto& strDest : connOptions.vSeedNodes) {
@@ -2357,24 +2353,20 @@ bool CConnman::Start(CScheduler& scheduler, const Options& connOptions)
     if (!gArgs.GetBoolArg("-dnsseed", true))
         LogPrintf("DNS seeding disabled\n");
     else
-        threadDNSAddressSeed = std::thread(&TraceThread<std::function<void()> >, "dnsseed", std::function<void()>(std::bind(&CConnman::ThreadDNSAddressSeed, this)));
+        threadDNSAddressSeed = std::thread(&TraceThread<std::function<void()>>, "dnsseed", std::function<void()>(std::bind(&CConnman::ThreadDNSAddressSeed, this)));
 
     // Initiate outbound connections from -addnode
-    threadOpenAddedConnections = std::thread(&TraceThread<std::function<void()> >, "addcon", std::function<void()>(std::bind(&CConnman::ThreadOpenAddedConnections, this)));
+    threadOpenAddedConnections = std::thread(&TraceThread<std::function<void()>>, "addcon", std::function<void()>(std::bind(&CConnman::ThreadOpenAddedConnections, this)));
 
     if (connOptions.m_use_addrman_outgoing && !connOptions.m_specified_outgoing.empty()) {
-        if (clientInterface) {
-            clientInterface->ThreadSafeMessageBox(
-                _("Cannot provide specific connections and have addrman find outgoing connections at the same."),
-                "", CClientUIInterface::MSG_ERROR);
-        }
-        return false;
+        return InitError(
+            _("Cannot provide specific connections and have addrman find outgoing connections at the same."));
     }
     if (connOptions.m_use_addrman_outgoing || !connOptions.m_specified_outgoing.empty())
-        threadOpenConnections = std::thread(&TraceThread<std::function<void()> >, "opencon", std::function<void()>(std::bind(&CConnman::ThreadOpenConnections, this, connOptions.m_specified_outgoing)));
+        threadOpenConnections = std::thread(&TraceThread<std::function<void()>>, "opencon", std::function<void()>(std::bind(&CConnman::ThreadOpenConnections, this, connOptions.m_specified_outgoing)));
 
     // Process messages
-    threadMessageHandler = std::thread(&TraceThread<std::function<void()> >, "msghand", std::function<void()>(std::bind(&CConnman::ThreadMessageHandler, this)));
+    threadMessageHandler = std::thread(&TraceThread<std::function<void()>>, "msghand", std::function<void()>(std::bind(&CConnman::ThreadMessageHandler, this)));
 
     // Dump network addresses
     scheduler.scheduleEvery(std::bind(&CConnman::DumpData, this), DUMP_ADDRESSES_INTERVAL * 1000);

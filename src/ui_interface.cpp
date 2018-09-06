@@ -58,14 +58,13 @@ void CClientUIInterface::NotifyBlockTip(bool b, const CBlockIndex* i) { return g
 void CClientUIInterface::NotifyHeaderTip(bool b, const CBlockIndex* i) { return g_ui_signals.NotifyHeaderTip(b, i); }
 void CClientUIInterface::BannedListChanged() { return g_ui_signals.BannedListChanged(); }
 
-
-bool InitError(const std::string& str)
+bool UIError(const std::string& str)
 {
     uiInterface.ThreadSafeMessageBox(str, "", CClientUIInterface::MSG_ERROR);
     return false;
 }
 
-void InitWarning(const std::string& str)
+void UIWarning(const std::string& str)
 {
     uiInterface.ThreadSafeMessageBox(str, "", CClientUIInterface::MSG_WARNING);
 }

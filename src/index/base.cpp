@@ -22,9 +22,8 @@ static void FatalError(const char* fmt, const Args&... args)
     std::string strMessage = tfm::format(fmt, args...);
     SetMiscWarning(strMessage);
     LogPrintf("*** %s\n", strMessage);
-    uiInterface.ThreadSafeMessageBox(
-        "Error: A fatal internal error occurred, see debug.log for details",
-        "", CClientUIInterface::MSG_ERROR);
+    UIError(
+        "A fatal internal error occurred, see debug.log for details");
     StartShutdown();
 }
 

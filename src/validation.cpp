@@ -1516,9 +1516,8 @@ static bool AbortNode(const std::string& strMessage, const std::string& userMess
 {
     SetMiscWarning(strMessage);
     LogPrintf("*** %s\n", strMessage);
-    uiInterface.ThreadSafeMessageBox(
-        userMessage.empty() ? _("Error: A fatal internal error occurred, see debug.log for details") : userMessage,
-        "", CClientUIInterface::MSG_ERROR);
+    InitError(
+        userMessage.empty() ? _("Error: A fatal internal error occurred, see debug.log for details") : userMessage);
     StartShutdown();
     return false;
 }

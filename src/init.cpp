@@ -119,11 +119,12 @@ class CCoinsViewErrorCatcher final : public CCoinsViewBacked
 {
 public:
     explicit CCoinsViewErrorCatcher(CCoinsView* view) : CCoinsViewBacked(view) {}
-    bool GetCoin(const COutPoint &outpoint, Coin &coin) const override {
+    bool GetCoin(const COutPoint& outpoint, Coin& coin) const override
+    {
         try {
             return CCoinsViewBacked::GetCoin(outpoint, coin);
-        } catch(const std::runtime_error& e) {
-            uiInterface.ThreadSafeMessageBox(_("Error reading from database, shutting down."), "", CClientUIInterface::MSG_ERROR);
+        } catch (const std::runtime_error& e) {
+            InitError(_("Error reading from database, shutting down."));
             LogPrintf("Error reading from database: %s\n", e.what());
             // Starting the shutdown sequence and returning false to the caller would be
             // interpreted as 'entry not found' (as opposed to unable to read data), and
