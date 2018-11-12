@@ -55,7 +55,7 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup)
         WalletRescanReserver reserver(&wallet);
         reserver.reserve();
         const CBlockIndex *stop_block, *failed_block;
-        BOOST_CHECK_EQUAL(wallet.ScanForWalletTransactions(oldTip, nullptr, reserver, failed_block, stop_block), CWallet::ScanResult::SUCCESS);
+        BOOST_CHECK_EQUAL(wallet.ScanForWalletTransactions(*oldTip, nullptr, reserver, failed_block, stop_block), CWallet::ScanResult::SUCCESS);
         BOOST_CHECK_EQUAL(failed_block, null_block);
         BOOST_CHECK_EQUAL(stop_block, newTip);
         BOOST_CHECK_EQUAL(wallet.GetImmatureBalance(), 100 * COIN);
@@ -73,7 +73,7 @@ BOOST_FIXTURE_TEST_CASE(rescan, TestChain100Setup)
         WalletRescanReserver reserver(&wallet);
         reserver.reserve();
         const CBlockIndex *stop_block, *failed_block;
-        BOOST_CHECK_EQUAL(wallet.ScanForWalletTransactions(oldTip, nullptr, reserver, failed_block, stop_block), CWallet::ScanResult::FAILURE);
+        BOOST_CHECK_EQUAL(wallet.ScanForWalletTransactions(*oldTip, nullptr, reserver, failed_block, stop_block), CWallet::ScanResult::FAILURE);
         BOOST_CHECK_EQUAL(failed_block, oldTip);
         BOOST_CHECK_EQUAL(stop_block, newTip);
         BOOST_CHECK_EQUAL(wallet.GetImmatureBalance(), 50 * COIN);
@@ -295,7 +295,7 @@ public:
         reserver.reserve();
         const CBlockIndex* const null_block = nullptr;
         const CBlockIndex *stop_block, *failed_block;
-        BOOST_CHECK_EQUAL(wallet->ScanForWalletTransactions(chainActive.Genesis(), nullptr, reserver, failed_block, stop_block), CWallet::ScanResult::SUCCESS);
+        BOOST_CHECK_EQUAL(wallet->ScanForWalletTransactions(*chainActive.Genesis(), nullptr, reserver, failed_block, stop_block), CWallet::ScanResult::SUCCESS);
         BOOST_CHECK_EQUAL(stop_block, chainActive.Tip());
         BOOST_CHECK_EQUAL(failed_block, null_block);
     }
