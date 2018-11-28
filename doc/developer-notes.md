@@ -88,7 +88,7 @@ code.
 
 Block style example:
 ```c++
-int g_count = 0;
+int64_t g_count = 0;
 
 namespace foo {
 class Class
@@ -477,7 +477,7 @@ C++ data structures
 ```cpp
 class A
 {
-    uint32_t m_count{0};
+    int32_t m_count{0};
 }
 ```
 
@@ -486,6 +486,16 @@ class A
   - *Rationale*: This is a precaution to avoid unintended conversions that might
     arise when single-argument constructors are used as implicit conversion
     functions.
+
+- Use signed types for integers (such as `int` or `int64_t`) unless unsigned
+  types are required by design.
+
+  `int` should only be used for small values, such as loop counters. All other
+  integers should be precise-width signed integers (such as `int64_t`) unless they represent a bitfield or model
+  modular arithmetic. Use precise-width unsigned integers (such as `uint32_t`) for those use cases.
+
+  - *Rationale*: Avoids platform-dependent bugs by mixing integers of different widths and avoids unsigned integer
+    wraparounds by mixing signedness of integers.
 
 - Use explicitly signed or unsigned `char`s, or even better `uint8_t` and
   `int8_t`. Do not use bare `char` unless it is to pass to a third-party API.
