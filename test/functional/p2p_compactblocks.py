@@ -100,6 +100,7 @@ class CompactBlocksTest(BitcoinTestFramework):
         # TODO: Rewrite this test to support SegWit being always active.
         self.extra_args = [["-vbparams=segwit:0:0"], ["-vbparams=segwit:0:999999999999", "-txindex"]]
         self.utxos = []
+        self.rpc_timewait = 180
 
     def skip_test_if_missing_module(self):
         self.skip_if_no_wallet()
