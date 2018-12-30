@@ -119,13 +119,13 @@ class CHashWriter
 private:
     CHash256 ctx;
 
-    const int nType;
+    const Ser nType;
     const int nVersion;
 public:
 
-    CHashWriter(int nTypeIn, int nVersionIn) : nType(nTypeIn), nVersion(nVersionIn) {}
+    CHashWriter(Ser nTypeIn, int nVersionIn) : nType(nTypeIn), nVersion(nVersionIn) {}
 
-    int GetType() const { return nType; }
+    Ser GetType() const { return nType; }
     int GetVersion() const { return nVersion; }
 
     void write(const char *pch, size_t size) {
@@ -193,7 +193,7 @@ public:
 
 /** Compute the 256-bit hash of an object's serialization. */
 template<typename T>
-uint256 SerializeHash(const T& obj, int nType=SER_GETHASH, int nVersion=PROTOCOL_VERSION)
+uint256 SerializeHash(const T& obj, Ser nType=Ser::GETHASH, int nVersion=PROTOCOL_VERSION)
 {
     CHashWriter ss(nType, nVersion);
     ss << obj;

@@ -142,7 +142,7 @@ Python code to generate the below hashes:
 */
 BOOST_AUTO_TEST_CASE(floats)
 {
-    CDataStream ss(SER_DISK, 0);
+    CDataStream ss(Ser::DISK, 0);
     // encode
     for (int i = 0; i < 1000; i++) {
         ss << float(i);
@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(floats)
 
 BOOST_AUTO_TEST_CASE(doubles)
 {
-    CDataStream ss(SER_DISK, 0);
+    CDataStream ss(Ser::DISK, 0);
     // encode
     for (int i = 0; i < 1000; i++) {
         ss << double(i);
@@ -178,7 +178,7 @@ BOOST_AUTO_TEST_CASE(varints)
 {
     // encode
 
-    CDataStream ss(SER_DISK, 0);
+    CDataStream ss(Ser::DISK, 0);
     CDataStream::size_type size = 0;
     for (int i = 0; i < 100000; i++) {
         ss << VARINT(i, VarIntMode::NONNEGATIVE_SIGNED);
@@ -208,7 +208,7 @@ BOOST_AUTO_TEST_CASE(varints)
 
 BOOST_AUTO_TEST_CASE(varints_bitpatterns)
 {
-    CDataStream ss(SER_DISK, 0);
+    CDataStream ss(Ser::DISK, 0);
     ss << VARINT(0, VarIntMode::NONNEGATIVE_SIGNED); BOOST_CHECK_EQUAL(HexStr(ss), "00"); ss.clear();
     ss << VARINT(0x7f, VarIntMode::NONNEGATIVE_SIGNED); BOOST_CHECK_EQUAL(HexStr(ss), "7f"); ss.clear();
     ss << VARINT((int8_t)0x7f, VarIntMode::NONNEGATIVE_SIGNED); BOOST_CHECK_EQUAL(HexStr(ss), "7f"); ss.clear();
@@ -229,7 +229,7 @@ BOOST_AUTO_TEST_CASE(varints_bitpatterns)
 
 BOOST_AUTO_TEST_CASE(compactsize)
 {
-    CDataStream ss(SER_DISK, 0);
+    CDataStream ss(Ser::DISK, 0);
     std::vector<char>::size_type i, j;
 
     for (i = 1; i <= MAX_SIZE; i *= 2)
@@ -262,7 +262,7 @@ BOOST_AUTO_TEST_CASE(noncanonical)
 {
     // Write some non-canonical CompactSize encodings, and
     // make sure an exception is thrown when read back.
-    CDataStream ss(SER_DISK, 0);
+    CDataStream ss(Ser::DISK, 0);
     std::vector<char>::size_type n;
 
     // zero encoded with three bytes:
@@ -298,7 +298,7 @@ BOOST_AUTO_TEST_CASE(noncanonical)
 BOOST_AUTO_TEST_CASE(insert_delete)
 {
     // Test inserting/deleting bytes.
-    CDataStream ss(SER_DISK, 0);
+    CDataStream ss(Ser::DISK, 0);
     BOOST_CHECK_EQUAL(ss.size(), 0U);
 
     ss.write("\x00\x01\x02\xff", 4);
@@ -355,7 +355,7 @@ BOOST_AUTO_TEST_CASE(class_methods)
     CSerializeMethodsTestMany methodtest2(intval, boolval, stringval, charstrval, tx_ref);
     CSerializeMethodsTestSingle methodtest3;
     CSerializeMethodsTestMany methodtest4;
-    CDataStream ss(SER_DISK, PROTOCOL_VERSION);
+    CDataStream ss(Ser::DISK, PROTOCOL_VERSION);
     BOOST_CHECK(methodtest1 == methodtest2);
     ss << methodtest1;
     ss >> methodtest4;
@@ -365,7 +365,7 @@ BOOST_AUTO_TEST_CASE(class_methods)
     BOOST_CHECK(methodtest2 == methodtest3);
     BOOST_CHECK(methodtest3 == methodtest4);
 
-    CDataStream ss2(SER_DISK, PROTOCOL_VERSION, intval, boolval, stringval, charstrval, txval);
+    CDataStream ss2(Ser::DISK, PROTOCOL_VERSION, intval, boolval, stringval, charstrval, txval);
     ss2 >> methodtest3;
     BOOST_CHECK(methodtest3 == methodtest4);
 }

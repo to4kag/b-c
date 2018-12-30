@@ -368,7 +368,7 @@ UniValue importprunedfunds(const JSONRPCRequest& request)
     uint256 hashTx = tx.GetHash();
     CWalletTx wtx(pwallet, MakeTransactionRef(std::move(tx)));
 
-    CDataStream ssMB(ParseHexV(request.params[1], "proof"), SER_NETWORK, PROTOCOL_VERSION);
+    CDataStream ssMB(ParseHexV(request.params[1], "proof"), Ser::NETWORK, PROTOCOL_VERSION);
     CMerkleBlock merkleBlock;
     ssMB >> merkleBlock;
 

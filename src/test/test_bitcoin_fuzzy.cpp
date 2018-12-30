@@ -74,7 +74,7 @@ static int test_one_input(std::vector<uint8_t> buffer) {
 
     if (test_id >= TEST_ID_END) return 0;
 
-    CDataStream ds(buffer, SER_NETWORK, INIT_PROTO_VERSION);
+    CDataStream ds(buffer, Ser::NETWORK, INIT_PROTO_VERSION);
     try {
         int nVersion;
         ds >> nVersion;

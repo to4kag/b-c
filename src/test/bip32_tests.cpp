@@ -119,11 +119,11 @@ static void RunTest(const TestVector &test) {
         key = keyNew;
         pubkey = pubkeyNew;
 
-        CDataStream ssPub(SER_DISK, CLIENT_VERSION);
+        CDataStream ssPub(Ser::DISK, CLIENT_VERSION);
         ssPub << pubkeyNew;
         BOOST_CHECK(ssPub.size() == 75);
 
-        CDataStream ssPriv(SER_DISK, CLIENT_VERSION);
+        CDataStream ssPriv(Ser::DISK, CLIENT_VERSION);
         ssPriv << keyNew;
         BOOST_CHECK(ssPriv.size() == 75);
 

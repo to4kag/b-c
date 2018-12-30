@@ -21,7 +21,7 @@ bool SerializeDB(Stream& stream, const Data& data)
 {
     // Write and commit header, data
     try {
-        CHashWriter hasher(SER_DISK, CLIENT_VERSION);
+        CHashWriter hasher(Ser::DISK, CLIENT_VERSION);
         stream << Params().MessageStart() << data;
         hasher << Params().MessageStart() << data;
         stream << hasher.GetHash();
@@ -43,7 +43,7 @@ bool SerializeFileDB(const std::string& prefix, const fs::path& path, const Data
     // open temp output file, and associate with CAutoFile
     fs::path pathTmp = GetDataDir() / tmpfn;
     FILE *file = fsbridge::fopen(pathTmp, "wb");
-    CAutoFile fileout(file, SER_DISK, CLIENT_VERSION);
+    CAutoFile fileout(file, Ser::DISK, CLIENT_VERSION);
     if (fileout.IsNull())
         return error("%s: Failed to open file %s", __func__, pathTmp.string());
 
@@ -96,7 +96,7 @@ bool DeserializeFileDB(const fs::path& path, Data& data)
 {
     // open input file, and associate with CAutoFile
     FILE *file = fsbridge::fopen(path, "rb");
-    CAutoFile filein(file, SER_DISK, CLIENT_VERSION);
+    CAutoFile filein(file, Ser::DISK, CLIENT_VERSION);
     if (filein.IsNull())
         return error("%s: Failed to open file %s", __func__, path.string());
 

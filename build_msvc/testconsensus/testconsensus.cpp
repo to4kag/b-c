@@ -37,7 +37,7 @@ int main()
     CScript scriptSig;
     CScriptWitness scriptWitness;
     CTransaction vanillaSpendTx = BuildSpendingTransaction(scriptSig, scriptWitness, amount);
-    CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+    CDataStream stream(Ser::NETWORK, PROTOCOL_VERSION);
     stream << vanillaSpendTx;
 
     bitcoinconsensus_error err;

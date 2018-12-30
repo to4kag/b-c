@@ -105,7 +105,7 @@ BOOST_AUTO_TEST_CASE(blockfilter_basic_test)
     // Test serialization/unserialization.
     BlockFilter block_filter2;
 
-    CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+    CDataStream stream(Ser::NETWORK, PROTOCOL_VERSION);
     stream << block_filter;
     stream >> block_filter2;
 

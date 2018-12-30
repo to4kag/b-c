@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE(SimpleRoundTripTest)
     {
         CBlockHeaderAndShortTxIDs shortIDs(block, true);
 
-        CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+        CDataStream stream(Ser::NETWORK, PROTOCOL_VERSION);
         stream << shortIDs;
 
         CBlockHeaderAndShortTxIDs shortIDs2;
@@ -121,7 +121,7 @@ public:
     std::vector<PrefilledTransaction> prefilledtxn;
 
     explicit TestHeaderAndShortIDs(const CBlockHeaderAndShortTxIDs& orig) {
-        CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+        CDataStream stream(Ser::NETWORK, PROTOCOL_VERSION);
         stream << orig;
         stream >> *this;
     }
@@ -129,7 +129,7 @@ public:
         TestHeaderAndShortIDs(CBlockHeaderAndShortTxIDs(block, true)) {}
 
     uint64_t GetShortID(const uint256& txhash) const {
-        CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+        CDataStream stream(Ser::NETWORK, PROTOCOL_VERSION);
         stream << *this;
         CBlockHeaderAndShortTxIDs base;
         stream >> base;
@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE(NonCoinbasePreforwardRTTest)
         shortIDs.shorttxids[0] = shortIDs.GetShortID(block.vtx[0]->GetHash());
         shortIDs.shorttxids[1] = shortIDs.GetShortID(block.vtx[2]->GetHash());
 
-        CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+        CDataStream stream(Ser::NETWORK, PROTOCOL_VERSION);
         stream << shortIDs;
 
         CBlockHeaderAndShortTxIDs shortIDs2;
@@ -247,7 +247,7 @@ BOOST_AUTO_TEST_CASE(SufficientPreforwardRTTest)
         shortIDs.shorttxids.resize(1);
         shortIDs.shorttxids[0] = shortIDs.GetShortID(block.vtx[1]->GetHash());
 
-        CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+        CDataStream stream(Ser::NETWORK, PROTOCOL_VERSION);
         stream << shortIDs;
 
         CBlockHeaderAndShortTxIDs shortIDs2;
@@ -302,7 +302,7 @@ BOOST_AUTO_TEST_CASE(EmptyBlockRoundTripTest)
     {
         CBlockHeaderAndShortTxIDs shortIDs(block, false);
 
-        CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+        CDataStream stream(Ser::NETWORK, PROTOCOL_VERSION);
         stream << shortIDs;
 
         CBlockHeaderAndShortTxIDs shortIDs2;
@@ -330,7 +330,7 @@ BOOST_AUTO_TEST_CASE(TransactionsRequestSerializationTest) {
     req1.indexes[2] = 3;
     req1.indexes[3] = 4;
 
-    CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+    CDataStream stream(Ser::NETWORK, PROTOCOL_VERSION);
     stream << req1;
 
     BlockTransactionsRequest req2;
@@ -350,7 +350,7 @@ BOOST_AUTO_TEST_CASE(TransactionsRequestDeserializationMaxTest) {
     req0.blockhash = InsecureRand256();
     req0.indexes.resize(1);
     req0.indexes[0] = 0xffff;
-    CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+    CDataStream stream(Ser::NETWORK, PROTOCOL_VERSION);
     stream << req0;
 
     BlockTransactionsRequest req1;
@@ -370,7 +370,7 @@ BOOST_AUTO_TEST_CASE(TransactionsRequestDeserializationOverflowTest) {
     req0.indexes[0] = 0x7000;
     req0.indexes[1] = 0x10000 - 0x7000 - 2;
     req0.indexes[2] = 0;
-    CDataStream stream(SER_NETWORK, PROTOCOL_VERSION);
+    CDataStream stream(Ser::NETWORK, PROTOCOL_VERSION);
     stream << req0.blockhash;
     WriteCompactSize(stream, req0.indexes.size());
     WriteCompactSize(stream, req0.indexes[0]);

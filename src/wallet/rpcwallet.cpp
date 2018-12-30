@@ -548,7 +548,7 @@ static UniValue signmessage(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_WALLET_ERROR, "Private key not available");
     }
 
-    CHashWriter ss(SER_GETHASH, 0);
+    CHashWriter ss(Ser::GETHASH, 0);
     ss << strMessageMagic;
     ss << strMessage;
 
@@ -4004,7 +4004,7 @@ UniValue walletprocesspsbt(const JSONRPCRequest& request)
     bool complete = FillPSBT(pwallet, psbtx, nHashType, sign, bip32derivs);
 
     UniValue result(UniValue::VOBJ);
-    CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
+    CDataStream ssTx(Ser::NETWORK, PROTOCOL_VERSION);
     ssTx << psbtx;
     result.pushKV("psbt", EncodeBase64(ssTx.str()));
     result.pushKV("complete", complete);
@@ -4118,7 +4118,7 @@ UniValue walletcreatefundedpsbt(const JSONRPCRequest& request)
     FillPSBT(pwallet, psbtx, 1, false, bip32derivs);
 
     // Serialize the PSBT
-    CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
+    CDataStream ssTx(Ser::NETWORK, PROTOCOL_VERSION);
     ssTx << psbtx;
 
     UniValue result(UniValue::VOBJ);

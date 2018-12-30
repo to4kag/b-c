@@ -188,7 +188,7 @@ static UniValue verifymessage(const JSONRPCRequest& request)
     if (fInvalid)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Malformed base64 encoding");
 
-    CHashWriter ss(SER_GETHASH, 0);
+    CHashWriter ss(Ser::GETHASH, 0);
     ss << strMessageMagic;
     ss << strMessage;
 
@@ -229,7 +229,7 @@ static UniValue signmessagewithprivkey(const JSONRPCRequest& request)
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid private key");
     }
 
-    CHashWriter ss(SER_GETHASH, 0);
+    CHashWriter ss(Ser::GETHASH, 0);
     ss << strMessageMagic;
     ss << strMessage;
 

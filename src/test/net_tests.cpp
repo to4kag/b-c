@@ -65,12 +65,12 @@ public:
 
 static CDataStream AddrmanToStream(CAddrManSerializationMock& _addrman)
 {
-    CDataStream ssPeersIn(SER_DISK, CLIENT_VERSION);
+    CDataStream ssPeersIn(Ser::DISK, CLIENT_VERSION);
     ssPeersIn << Params().MessageStart();
     ssPeersIn << _addrman;
     std::string str = ssPeersIn.str();
     std::vector<unsigned char> vchData(str.begin(), str.end());
-    return CDataStream(vchData, SER_DISK, CLIENT_VERSION);
+    return CDataStream(vchData, Ser::DISK, CLIENT_VERSION);
 }
 
 BOOST_FIXTURE_TEST_SUITE(net_tests, BasicTestingSetup)

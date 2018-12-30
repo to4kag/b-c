@@ -341,10 +341,10 @@ public:
         if (ser_action.ForRead())
             Init();
         int nVersion = s.GetVersion();
-        if (s.GetType() & SER_DISK)
+        if (s.GetType() == Ser::DISK)
             READWRITE(nVersion);
-        if ((s.GetType() & SER_DISK) ||
-            (nVersion >= CADDR_TIME_VERSION && !(s.GetType() & SER_GETHASH)))
+        if ((s.GetType() == Ser::DISK) ||
+            (nVersion >= CADDR_TIME_VERSION && !(s.GetType() == Ser::GETHASH)))
             READWRITE(nTime);
         uint64_t nServicesInt = nServices;
         READWRITE(nServicesInt);

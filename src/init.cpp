@@ -209,7 +209,7 @@ void Shutdown(InitInterfaces& interfaces)
     {
         ::feeEstimator.FlushUnconfirmed();
         fs::path est_path = GetDataDir() / FEE_ESTIMATES_FILENAME;
-        CAutoFile est_fileout(fsbridge::fopen(est_path, "wb"), SER_DISK, CLIENT_VERSION);
+        CAutoFile est_fileout(fsbridge::fopen(est_path, "wb"), Ser::DISK, CLIENT_VERSION);
         if (!est_fileout.IsNull())
             ::feeEstimator.Write(est_fileout);
         else
@@ -1583,7 +1583,7 @@ bool AppInitMain(InitInterfaces& interfaces)
     }
 
     fs::path est_path = GetDataDir() / FEE_ESTIMATES_FILENAME;
-    CAutoFile est_filein(fsbridge::fopen(est_path, "rb"), SER_DISK, CLIENT_VERSION);
+    CAutoFile est_filein(fsbridge::fopen(est_path, "rb"), Ser::DISK, CLIENT_VERSION);
     // Allowed to fail as this file IS missing on first startup.
     if (!est_filein.IsNull())
         ::feeEstimator.Read(est_filein);

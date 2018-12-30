@@ -265,7 +265,7 @@ WalletModel::SendCoinsReturn WalletModel::sendCoins(WalletModelTransaction &tran
         if (!newTx->commit({} /* mapValue */, std::move(vOrderForm), rejectReason))
             return SendCoinsReturn(TransactionCommitFailed, QString::fromStdString(rejectReason));
 
-        CDataStream ssTx(SER_NETWORK, PROTOCOL_VERSION);
+        CDataStream ssTx(Ser::NETWORK, PROTOCOL_VERSION);
         ssTx << newTx->get();
         transaction_array.append(&(ssTx[0]), ssTx.size());
     }

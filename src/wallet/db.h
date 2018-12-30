@@ -230,7 +230,7 @@ public:
             return false;
 
         // Key
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        CDataStream ssKey(Ser::DISK, CLIENT_VERSION);
         ssKey.reserve(1000);
         ssKey << key;
         Dbt datKey(ssKey.data(), ssKey.size());
@@ -244,7 +244,7 @@ public:
         if (datValue.get_data() != nullptr) {
             // Unserialize value
             try {
-                CDataStream ssValue((char*)datValue.get_data(), (char*)datValue.get_data() + datValue.get_size(), SER_DISK, CLIENT_VERSION);
+                CDataStream ssValue((char*)datValue.get_data(), (char*)datValue.get_data() + datValue.get_size(), Ser::DISK, CLIENT_VERSION);
                 ssValue >> value;
                 success = true;
             } catch (const std::exception&) {
@@ -267,13 +267,13 @@ public:
             assert(!"Write called on database in read-only mode");
 
         // Key
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        CDataStream ssKey(Ser::DISK, CLIENT_VERSION);
         ssKey.reserve(1000);
         ssKey << key;
         Dbt datKey(ssKey.data(), ssKey.size());
 
         // Value
-        CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+        CDataStream ssValue(Ser::DISK, CLIENT_VERSION);
         ssValue.reserve(10000);
         ssValue << value;
         Dbt datValue(ssValue.data(), ssValue.size());
@@ -296,7 +296,7 @@ public:
             assert(!"Erase called on database in read-only mode");
 
         // Key
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        CDataStream ssKey(Ser::DISK, CLIENT_VERSION);
         ssKey.reserve(1000);
         ssKey << key;
         Dbt datKey(ssKey.data(), ssKey.size());
@@ -316,7 +316,7 @@ public:
             return false;
 
         // Key
-        CDataStream ssKey(SER_DISK, CLIENT_VERSION);
+        CDataStream ssKey(Ser::DISK, CLIENT_VERSION);
         ssKey.reserve(1000);
         ssKey << key;
         Dbt datKey(ssKey.data(), ssKey.size());
@@ -360,10 +360,10 @@ public:
             return 99999;
 
         // Convert to streams
-        ssKey.SetType(SER_DISK);
+        ssKey.SetType(Ser::DISK);
         ssKey.clear();
         ssKey.write((char*)datKey.get_data(), datKey.get_size());
-        ssValue.SetType(SER_DISK);
+        ssValue.SetType(Ser::DISK);
         ssValue.clear();
         ssValue.write((char*)datValue.get_data(), datValue.get_size());
 

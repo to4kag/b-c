@@ -315,8 +315,8 @@ bool BerkeleyBatch::Recover(const fs::path& file_path, void *callbackDataIn, boo
     {
         if (recoverKVcallback)
         {
-            CDataStream ssKey(row.first, SER_DISK, CLIENT_VERSION);
-            CDataStream ssValue(row.second, SER_DISK, CLIENT_VERSION);
+            CDataStream ssKey(row.first, Ser::DISK, CLIENT_VERSION);
+            CDataStream ssValue(row.second, Ser::DISK, CLIENT_VERSION);
             if (!(*recoverKVcallback)(callbackDataIn, ssKey, ssValue))
                 continue;
         }
@@ -653,8 +653,8 @@ bool BerkeleyBatch::Rewrite(BerkeleyDatabase& database, const char* pszSkip)
                     Dbc* pcursor = db.GetCursor();
                     if (pcursor)
                         while (fSuccess) {
-                            CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-                            CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+                            CDataStream ssKey(Ser::DISK, CLIENT_VERSION);
+                            CDataStream ssValue(Ser::DISK, CLIENT_VERSION);
                             int ret1 = db.ReadAtCursor(pcursor, ssKey, ssValue);
                             if (ret1 == DB_NOTFOUND) {
                                 pcursor->close();

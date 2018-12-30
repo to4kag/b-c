@@ -461,8 +461,8 @@ DBErrors WalletBatch::LoadWallet(CWallet* pwallet)
         while (true)
         {
             // Read next record
-            CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-            CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+            CDataStream ssKey(Ser::DISK, CLIENT_VERSION);
+            CDataStream ssValue(Ser::DISK, CLIENT_VERSION);
             int ret = m_batch.ReadAtCursor(pcursor, ssKey, ssValue);
             if (ret == DB_NOTFOUND)
                 break;
@@ -559,8 +559,8 @@ DBErrors WalletBatch::FindWalletTx(std::vector<uint256>& vTxHash, std::vector<CW
         while (true)
         {
             // Read next record
-            CDataStream ssKey(SER_DISK, CLIENT_VERSION);
-            CDataStream ssValue(SER_DISK, CLIENT_VERSION);
+            CDataStream ssKey(Ser::DISK, CLIENT_VERSION);
+            CDataStream ssValue(Ser::DISK, CLIENT_VERSION);
             int ret = m_batch.ReadAtCursor(pcursor, ssKey, ssValue);
             if (ret == DB_NOTFOUND)
                 break;

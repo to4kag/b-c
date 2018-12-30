@@ -10,7 +10,7 @@
 #include <streams.h>
 
 /// SerType used to serialize parameters in GCS filter encoding.
-static constexpr int GCS_SER_TYPE = SER_NETWORK;
+static constexpr Ser GCS_SER_TYPE = Ser::NETWORK;
 
 /// Protocol version used to serialize parameters in GCS filter encoding.
 static constexpr int GCS_SER_VERSION = 0;

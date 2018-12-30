@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(pmt_test1)
             CPartialMerkleTree pmt1(vTxid, vMatch);
 
             // serialize
-            CDataStream ss(SER_NETWORK, PROTOCOL_VERSION);
+            CDataStream ss(Ser::NETWORK, PROTOCOL_VERSION);
             ss << pmt1;
 
             // verify CPartialMerkleTree's size guarantees

@@ -16,7 +16,7 @@ namespace {
 class TxInputStream
 {
 public:
-    TxInputStream(int nTypeIn, int nVersionIn, const unsigned char *txTo, size_t txToLen) :
+    TxInputStream(Ser nTypeIn, int nVersionIn, const unsigned char *txTo, size_t txToLen) :
     m_type(nTypeIn),
     m_version(nVersionIn),
     m_data(txTo),
@@ -47,9 +47,9 @@ public:
     }
 
     int GetVersion() const { return m_version; }
-    int GetType() const { return m_type; }
+    Ser GetType() const { return m_type; }
 private:
-    const int m_type;
+    const Ser m_type;
     const int m_version;
     const unsigned char* m_data;
     size_t m_remaining;
@@ -84,7 +84,7 @@ static int verify_script(const unsigned char *scriptPubKey, unsigned int scriptP
         return set_error(err, bitcoinconsensus_ERR_INVALID_FLAGS);
     }
     try {
-        TxInputStream stream(SER_NETWORK, PROTOCOL_VERSION, txTo, txToLen);
+        TxInputStream stream(Ser::NETWORK, PROTOCOL_VERSION, txTo, txToLen);
         CTransaction tx(deserialize, stream);
         if (nIn >= tx.vin.size())
             return set_error(err, bitcoinconsensus_ERR_TX_INDEX);

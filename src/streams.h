@@ -27,11 +27,11 @@ class OverrideStream
 {
     Stream* stream;
 
-    const int nType;
+    const Ser nType;
     const int nVersion;
 
 public:
-    OverrideStream(Stream* stream_, int nType_, int nVersion_) : stream(stream_), nType(nType_), nVersion(nVersion_) {}
+    OverrideStream(Stream* stream_, Ser nType_, int nVersion_) : stream(stream_), nType(nType_), nVersion(nVersion_) {}
 
     template<typename T>
     OverrideStream<Stream>& operator<<(const T& obj)
@@ -60,7 +60,7 @@ public:
     }
 
     int GetVersion() const { return nVersion; }
-    int GetType() const { return nType; }
+    Ser GetType() const { return nType; }
     size_t size() const { return stream->size(); }
 };
 
@@ -85,7 +85,7 @@ class CVectorWriter
  * @param[in]  nPosIn Starting position. Vector index where writes should start. The vector will initially
  *                    grow as necessary to max(nPosIn, vec.size()). So to append, use vec.size().
 */
-    CVectorWriter(int nTypeIn, int nVersionIn, std::vector<unsigned char>& vchDataIn, size_t nPosIn) : nType(nTypeIn), nVersion(nVersionIn), vchData(vchDataIn), nPos(nPosIn)
+    CVectorWriter(Ser nTypeIn, int nVersionIn, std::vector<unsigned char>& vchDataIn, size_t nPosIn) : nType(nTypeIn), nVersion(nVersionIn), vchData(vchDataIn), nPos(nPosIn)
     {
         if(nPos > vchData.size())
             vchData.resize(nPos);
@@ -95,7 +95,7 @@ class CVectorWriter
  * @param[in]  args  A list of items to serialize starting at nPosIn.
 */
     template <typename... Args>
-    CVectorWriter(int nTypeIn, int nVersionIn, std::vector<unsigned char>& vchDataIn, size_t nPosIn, Args&&... args) : CVectorWriter(nTypeIn, nVersionIn, vchDataIn, nPosIn)
+    CVectorWriter(Ser nTypeIn, int nVersionIn, std::vector<unsigned char>& vchDataIn, size_t nPosIn, Args&&... args) : CVectorWriter(nTypeIn, nVersionIn, vchDataIn, nPosIn)
     {
         ::SerializeMany(*this, std::forward<Args>(args)...);
     }
@@ -122,7 +122,7 @@ class CVectorWriter
     {
         return nVersion;
     }
-    int GetType() const
+    Ser GetType() const
     {
         return nType;
     }
@@ -133,7 +133,7 @@ class CVectorWriter
             vchData.resize(nPos);
     }
 private:
-    const int nType;
+    const Ser nType;
     const int nVersion;
     std::vector<unsigned char>& vchData;
     size_t nPos;
@@ -144,7 +144,7 @@ private:
 class VectorReader
 {
 private:
-    const int m_type;
+    const Ser m_type;
     const int m_version;
     const std::vector<unsigned char>& m_data;
     size_t m_pos = 0;
@@ -157,7 +157,7 @@ public:
      * @param[in]  data Referenced byte vector to overwrite/append
      * @param[in]  pos Starting position. Vector index where reads should start.
      */
-    VectorReader(int type, int version, const std::vector<unsigned char>& data, size_t pos)
+    VectorReader(Ser type, int version, const std::vector<unsigned char>& data, size_t pos)
         : m_type(type), m_version(version), m_data(data)
     {
         seek(pos);
@@ -168,7 +168,7 @@ public:
      * @param[in]  args  A list of items to deserialize starting at pos.
      */
     template <typename... Args>
-    VectorReader(int type, int version, const std::vector<unsigned char>& data, size_t pos,
+    VectorReader(Ser type, int version, const std::vector<unsigned char>& data, size_t pos,
                   Args&&... args)
         : VectorReader(type, version, data, pos)
     {
@@ -184,7 +184,7 @@ public:
     }
 
     int GetVersion() const { return m_version; }
-    int GetType() const { return m_type; }
+    Ser GetType() const { return m_type; }
 
     size_t size() const { return m_data.size() - m_pos; }
     bool empty() const { return m_data.size() == m_pos; }
@@ -225,7 +225,7 @@ protected:
     vector_type vch;
     unsigned int nReadPos;
 
-    int nType;
+    Ser nType;
     int nVersion;
 public:
 
@@ -239,44 +239,44 @@ public:
     typedef vector_type::const_iterator   const_iterator;
     typedef vector_type::reverse_iterator reverse_iterator;
 
-    explicit CDataStream(int nTypeIn, int nVersionIn)
+    explicit CDataStream(Ser nTypeIn, int nVersionIn)
     {
         Init(nTypeIn, nVersionIn);
     }
 
-    CDataStream(const_iterator pbegin, const_iterator pend, int nTypeIn, int nVersionIn) : vch(pbegin, pend)
+    CDataStream(const_iterator pbegin, const_iterator pend, Ser nTypeIn, int nVersionIn) : vch(pbegin, pend)
     {
         Init(nTypeIn, nVersionIn);
     }
 
-    CDataStream(const char* pbegin, const char* pend, int nTypeIn, int nVersionIn) : vch(pbegin, pend)
+    CDataStream(const char* pbegin, const char* pend, Ser nTypeIn, int nVersionIn) : vch(pbegin, pend)
     {
         Init(nTypeIn, nVersionIn);
     }
 
-    CDataStream(const vector_type& vchIn, int nTypeIn, int nVersionIn) : vch(vchIn.begin(), vchIn.end())
+    CDataStream(const vector_type& vchIn, Ser nTypeIn, int nVersionIn) : vch(vchIn.begin(), vchIn.end())
     {
         Init(nTypeIn, nVersionIn);
     }
 
-    CDataStream(const std::vector<char>& vchIn, int nTypeIn, int nVersionIn) : vch(vchIn.begin(), vchIn.end())
+    CDataStream(const std::vector<char>& vchIn, Ser nTypeIn, int nVersionIn) : vch(vchIn.begin(), vchIn.end())
     {
         Init(nTypeIn, nVersionIn);
     }
 
-    CDataStream(const std::vector<unsigned char>& vchIn, int nTypeIn, int nVersionIn) : vch(vchIn.begin(), vchIn.end())
+    CDataStream(const std::vector<unsigned char>& vchIn, Ser nTypeIn, int nVersionIn) : vch(vchIn.begin(), vchIn.end())
     {
         Init(nTypeIn, nVersionIn);
     }
 
     template <typename... Args>
-    CDataStream(int nTypeIn, int nVersionIn, Args&&... args)
+    CDataStream(Ser nTypeIn, int nVersionIn, Args&&... args)
     {
         Init(nTypeIn, nVersionIn);
         ::SerializeMany(*this, std::forward<Args>(args)...);
     }
 
-    void Init(int nTypeIn, int nVersionIn)
+    void Init(Ser nTypeIn, int nVersionIn)
     {
         nReadPos = 0;
         nType = nTypeIn;
@@ -409,8 +409,8 @@ public:
     CDataStream* rdbuf()         { return this; }
     int in_avail() const         { return size(); }
 
-    void SetType(int n)          { nType = n; }
-    int GetType() const          { return nType; }
+    void SetType(Ser n)          { nType = n; }
+    Ser GetType() const          { return nType; }
     void SetVersion(int n)       { nVersion = n; }
     int GetVersion() const       { return nVersion; }
 
@@ -621,13 +621,13 @@ public:
 class CAutoFile
 {
 private:
-    const int nType;
+    const Ser nType;
     const int nVersion;
 
     FILE* file;
 
 public:
-    CAutoFile(FILE* filenew, int nTypeIn, int nVersionIn) : nType(nTypeIn), nVersion(nVersionIn)
+    CAutoFile(FILE* filenew, Ser nTypeIn, int nVersionIn) : nType(nTypeIn), nVersion(nVersionIn)
     {
         file = filenew;
     }
@@ -668,7 +668,7 @@ public:
     //
     // Stream subset
     //
-    int GetType() const          { return nType; }
+    Ser GetType() const          { return nType; }
     int GetVersion() const       { return nVersion; }
 
     void read(char* pch, size_t nSize)
@@ -730,7 +730,7 @@ public:
 class CBufferedFile
 {
 private:
-    const int nType;
+    const Ser nType;
     const int nVersion;
 
     FILE *src;            // source file
@@ -760,7 +760,7 @@ protected:
     }
 
 public:
-    CBufferedFile(FILE *fileIn, uint64_t nBufSize, uint64_t nRewindIn, int nTypeIn, int nVersionIn) :
+    CBufferedFile(FILE *fileIn, uint64_t nBufSize, uint64_t nRewindIn, Ser nTypeIn, int nVersionIn) :
         nType(nTypeIn), nVersion(nVersionIn), nSrcPos(0), nReadPos(0), nReadLimit(std::numeric_limits<uint64_t>::max()), nRewind(nRewindIn), vchBuf(nBufSize, 0)
     {
         src = fileIn;
@@ -776,7 +776,7 @@ public:
     CBufferedFile& operator=(const CBufferedFile&) = delete;
 
     int GetVersion() const { return nVersion; }
-    int GetType() const { return nType; }
+    Ser GetType() const { return nType; }
 
     void fclose()
     {

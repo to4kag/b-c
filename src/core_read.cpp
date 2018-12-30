@@ -119,7 +119,7 @@ bool DecodeHexTx(CMutableTransaction& tx, const std::string& hex_tx, bool try_no
     std::vector<unsigned char> txData(ParseHex(hex_tx));
 
     if (try_no_witness) {
-        CDataStream ssData(txData, SER_NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS);
+        CDataStream ssData(txData, Ser::NETWORK, PROTOCOL_VERSION | SERIALIZE_TRANSACTION_NO_WITNESS);
         try {
             ssData >> tx;
             if (ssData.eof() && (!try_witness || CheckTxScriptsSanity(tx))) {
@@ -131,7 +131,7 @@ bool DecodeHexTx(CMutableTransaction& tx, const std::string& hex_tx, bool try_no
     }
 
     if (try_witness) {
-        CDataStream ssData(txData, SER_NETWORK, PROTOCOL_VERSION);
+        CDataStream ssData(txData, Ser::NETWORK, PROTOCOL_VERSION);
         try {
             ssData >> tx;
             if (ssData.empty()) {
@@ -150,7 +150,7 @@ bool DecodeHexBlockHeader(CBlockHeader& header, const std::string& hex_header)
     if (!IsHex(hex_header)) return false;
 
     const std::vector<unsigned char> header_data{ParseHex(hex_header)};
-    CDataStream ser_header(header_data, SER_NETWORK, PROTOCOL_VERSION);
+    CDataStream ser_header(header_data, Ser::NETWORK, PROTOCOL_VERSION);
     try {
         ser_header >> header;
     } catch (const std::exception&) {
@@ -165,7 +165,7 @@ bool DecodeHexBlk(CBlock& block, const std::string& strHexBlk)
         return false;
 
     std::vector<unsigned char> blockData(ParseHex(strHexBlk));
-    CDataStream ssBlock(blockData, SER_NETWORK, PROTOCOL_VERSION);
+    CDataStream ssBlock(blockData, Ser::NETWORK, PROTOCOL_VERSION);
     try {
         ssBlock >> block;
     }
@@ -179,7 +179,7 @@ bool DecodeHexBlk(CBlock& block, const std::string& strHexBlk)
 bool DecodePSBT(PartiallySignedTransaction& psbt, const std::string& base64_tx, std::string& error)
 {
     std::vector<unsigned char> tx_data = DecodeBase64(base64_tx.c_str());
-    CDataStream ss_data(tx_data, SER_NETWORK, PROTOCOL_VERSION);
+    CDataStream ss_data(tx_data, Ser::NETWORK, PROTOCOL_VERSION);
     try {
         ss_data >> psbt;
         if (!ss_data.empty()) {

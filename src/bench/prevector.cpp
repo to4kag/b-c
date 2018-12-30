@@ -78,7 +78,7 @@ static void PrevectorResize(benchmark::State& state)
 template <typename T>
 static void PrevectorDeserialize(benchmark::State& state)
 {
-    CDataStream s0(SER_NETWORK, 0);
+    CDataStream s0(Ser::NETWORK, 0);
     prevector<28, T> t0;
     t0.resize(28);
     for (auto x = 0; x < 900; ++x) {
@@ -93,7 +93,7 @@ static void PrevectorDeserialize(benchmark::State& state)
         for (auto x = 0; x < 1000; ++x) {
             s0 >> t1;
         }
-        s0.Init(SER_NETWORK, 0);
+        s0.Init(Ser::NETWORK, 0);
     }
 }
 
