@@ -41,9 +41,9 @@
 
 #include <boost/thread/thread.hpp> // boost::thread::interrupt
 
+#include <condition_variable>
 #include <memory>
 #include <mutex>
-#include <condition_variable>
 
 struct CUpdatedBlock
 {
@@ -402,6 +402,7 @@ static std::string EntryDescriptionString()
            "    \"spentby\" : [           (array) unconfirmed transactions spending outputs from this transaction\n"
            "        \"transactionid\",    (string) child transaction id\n"
            "       ... ]\n"
+           "    \"hex\" : hexstr,         (string) The serialized, hex-encoded data for 'txid'\n"
            "    \"bip125-replaceable\" : true|false,  (boolean) Whether this transaction could be replaced due to BIP125 (replace-by-fee)\n";
 }
 
@@ -461,6 +462,8 @@ static void entryToJSON(UniValue &info, const CTxMemPoolEntry &e) EXCLUSIVE_LOCK
     } else if (rbfState == RBFTransactionState::REPLACEABLE_BIP125) {
         rbfStatus = true;
     }
+
+    info.pushKV("hex", EncodeHexTx(tx, RPCSerializationFlags())); // The hex-encoded transaction. Used the name "hex" to be consistent with the verbose output of "getrawtransaction".
 
     info.pushKV("bip125-replaceable", rbfStatus);
 }
@@ -670,38 +673,49 @@ static UniValue getmempooldescendants(const JSONRPCRequest& request)
 
 static UniValue getmempoolentry(const JSONRPCRequest& request)
 {
-    if (request.fHelp || request.params.size() != 1) {
-        throw std::runtime_error(
-            RPCHelpMan{"getmempoolentry",
+    const RPCHelpMan help{"getmempoolentry",
                 "\nReturns mempool data for given transaction\n",
                 {
                     {"txid", RPCArg::Type::STR_HEX, RPCArg::Optional::NO, "The transaction id (must be in mempool)"},
+                    {"verbosity", RPCArg::Type::NUM, /* default */ "1", "How much details to include. (0=only raw transaction, 1=entry details as a dict)"},
                 },
-                RPCResult{
+                {
+                    RPCResult{"for verbosity = 0",
+                        "(string) The hex-encoded transaction\n"
+                    },
+                    RPCResult{"for verbosity = 1",
             "{                           (json object)\n"
             + EntryDescriptionString()
             + "}\n"
                 },
+                },
                 RPCExamples{
                     HelpExampleCli("getmempoolentry", "\"mytxid\"")
             + HelpExampleRpc("getmempoolentry", "\"mytxid\"")
-                },
-            }.ToString());
+            },
+    };
+    if (request.fHelp || !help.IsValidNumArgs(request.params.size())) {
+        throw std::runtime_error(help.ToString());
     }
 
     uint256 hash = ParseHashV(request.params[0], "parameter 1");
+    int verbose = 1;
+    if (!request.params[1].isNull()) verbose = request.params[1].get_int();
 
     LOCK(mempool.cs);
 
-    CTxMemPool::txiter it = mempool.mapTx.find(hash);
-    if (it == mempool.mapTx.end()) {
+    if (const auto it = mempool.GetIter(hash)) {
+        const CTxMemPoolEntry& e = **it;
+        if (verbose == 0) {
+            return EncodeHexTx(e.GetTx(), RPCSerializationFlags());
+        } else {
+            UniValue info(UniValue::VOBJ);
+            entryToJSON(info, e);
+            return info;
+        }
+    } else {
         throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Transaction not in mempool");
     }
-
-    const CTxMemPoolEntry &e = *it;
-    UniValue info(UniValue::VOBJ);
-    entryToJSON(info, e);
-    return info;
 }
 
 static UniValue getblockhash(const JSONRPCRequest& request)
@@ -2310,7 +2324,7 @@ static const CRPCCommand commands[] =
     { "blockchain",         "getdifficulty",          &getdifficulty,          {} },
     { "blockchain",         "getmempoolancestors",    &getmempoolancestors,    {"txid","verbose"} },
     { "blockchain",         "getmempooldescendants",  &getmempooldescendants,  {"txid","verbose"} },
-    { "blockchain",         "getmempoolentry",        &getmempoolentry,        {"txid"} },
+    { "blockchain",         "getmempoolentry",        &getmempoolentry,        {"txid","verbosity"} },
     { "blockchain",         "getmempoolinfo",         &getmempoolinfo,         {} },
     { "blockchain",         "getrawmempool",          &getrawmempool,          {"verbose"} },
     { "blockchain",         "gettxout",               &gettxout,               {"txid","n","include_mempool"} },
