@@ -17,6 +17,7 @@
 #include <primitives/block.h>
 #include <primitives/transaction.h>
 #include <protocol.h>
+#include <rpc/mining.h>
 #include <rpc/protocol.h>
 #include <rpc/server.h>
 #include <shutdown.h>
@@ -265,6 +266,10 @@ public:
         return true;
     }
     void findCoins(std::map<COutPoint, Coin>& coins) override { return FindCoins(coins); }
+    UniValue mineBlocks(const CScript& coinbase_script, int num_blocks, uint64_t max_tries)
+    {
+        return generateBlocks(coinbase_script, num_blocks, max_tries);
+    }
     double guessVerificationProgress(const uint256& block_hash) override
     {
         LOCK(cs_main);

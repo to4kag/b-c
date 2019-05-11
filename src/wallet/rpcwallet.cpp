@@ -3401,6 +3401,55 @@ static UniValue bumpfee(const JSONRPCRequest& request)
     return result;
 }
 
+UniValue generate(const JSONRPCRequest& request)
+{
+    std::shared_ptr<CWallet> const rpc_wallet = GetWalletForJSONRPCRequest(request);
+    if (!EnsureWalletIsAvailable(rpc_wallet.get(), request.fHelp)) {
+        return NullUniValue;
+    }
+    CWallet& wallet = *rpc_wallet;
+
+    const RPCHelpMan help{
+        "generate",
+        "\nMine up to nblocks blocks immediately (before the RPC call returns) to an address in the wallet.\n",
+        {
+            {"nblocks", RPCArg::Type::NUM, RPCArg::Optional::NO, "How many blocks are generated immediately."},
+            {"maxtries", RPCArg::Type::NUM, /* default */ "1000000", "How many iterations to try."},
+        },
+        RPCResult{
+            "[ blockhashes ]     (array) hashes of blocks generated\n"},
+        RPCExamples{
+            "\nGenerate 11 blocks\n" +
+            HelpExampleCli("generate", "11")},
+    };
+
+    if (request.fHelp || !help.IsValidNumArgs(request.params.size())) {
+        throw std::runtime_error(help.ToString());
+    }
+
+    const int num_generate = request.params[0].get_int();
+    const uint64_t max_tries = request.params[1].isNull() ? 1000000 : request.params[1].get_int();
+
+    const CScript coinbase_script = WITH_LOCK(wallet.cs_wallet, {
+        if (!wallet.CanGetAddresses()) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Error: This wallet has no available keys");
+        }
+        if (!wallet.IsLocked()) {
+            wallet.TopUpKeyPool();
+        }
+        CPubKey newKey;
+        if (!wallet.GetKeyFromPool(newKey)) {
+            throw JSONRPCError(RPC_WALLET_KEYPOOL_RAN_OUT, "Error: Keypool ran out, please call keypoolrefill first");
+        }
+        wallet.LearnRelatedScripts(newKey, OutputType::BECH32);
+        const CTxDestination dest = GetDestinationForKey(newKey, OutputType::BECH32);
+        wallet.SetAddressBook(dest, /* label */ "", /* purpose */ "receive");
+        return GetScriptForDestination(dest);
+    });
+
+    return g_rpc_interfaces->chain->mineBlocks(coinbase_script, num_generate, max_tries);
+}
+
 UniValue rescanblockchain(const JSONRPCRequest& request)
 {
     std::shared_ptr<CWallet> const wallet = GetWalletForJSONRPCRequest(request);
@@ -4135,6 +4184,7 @@ static const CRPCCommand commands[] =
 { //  category              name                                actor (function)                argNames
     //  --------------------- ------------------------          -----------------------         ----------
     { "rawtransactions",    "fundrawtransaction",               &fundrawtransaction,            {"hexstring","options","iswitness"} },
+    { "generating",         "generate",                         &generate,                      {"nblocks","maxtries"} },
     { "wallet",             "abandontransaction",               &abandontransaction,            {"txid"} },
     { "wallet",             "abortrescan",                      &abortrescan,                   {} },
     { "wallet",             "addmultisigaddress",               &addmultisigaddress,            {"nrequired","keys","label","address_type"} },

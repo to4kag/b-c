@@ -101,7 +101,7 @@ static UniValue getnetworkhashps(const JSONRPCRequest& request)
     return GetNetworkHashPS(!request.params[0].isNull() ? request.params[0].get_int() : 120, !request.params[1].isNull() ? request.params[1].get_int() : -1);
 }
 
-static UniValue generateBlocks(const CScript& coinbase_script, int nGenerate, uint64_t nMaxTries)
+UniValue generateBlocks(const CScript& coinbase_script, int nGenerate, uint64_t nMaxTries)
 {
     static const int nInnerLoopCount = 0x10000;
     int nHeightEnd = 0;
