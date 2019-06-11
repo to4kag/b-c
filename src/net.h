@@ -724,6 +724,7 @@ protected:
     mapMsgCmdSize mapRecvBytesPerMsgCmd GUARDED_BY(cs_vRecv);
 
 public:
+    std::string ToString() const;
     uint256 hashContinue;
     std::atomic<int> nStartingHeight{-1};
 
