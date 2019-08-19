@@ -4394,98 +4394,7 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(interfaces::Chain& chain,
         }
     }
 
-    if (!gArgs.GetArg("-addresstype", "").empty() && !ParseOutputType(gArgs.GetArg("-addresstype", ""), walletInstance->m_default_address_type)) {
-        chain.initError(strprintf("Unknown address type '%s'", gArgs.GetArg("-addresstype", "")));
-        return nullptr;
-    }
-
-    if (!gArgs.GetArg("-changetype", "").empty() && !ParseOutputType(gArgs.GetArg("-changetype", ""), walletInstance->m_default_change_type)) {
-        chain.initError(strprintf("Unknown change type '%s'", gArgs.GetArg("-changetype", "")));
-        return nullptr;
-    }
-
-    if (gArgs.IsArgSet("-mintxfee")) {
-        CAmount n = 0;
-        if (!ParseMoney(gArgs.GetArg("-mintxfee", ""), n) || 0 == n) {
-            chain.initError(AmountErrMsg("mintxfee", gArgs.GetArg("-mintxfee", "")));
-            return nullptr;
-        }
-        if (n > HIGH_TX_FEE_PER_KB) {
-            chain.initWarning(AmountHighWarn("-mintxfee") + " " +
-                              _("This is the minimum transaction fee you pay on every transaction.").translated);
-        }
-        walletInstance->m_min_fee = CFeeRate(n);
-    }
-
-    walletInstance->m_allow_fallback_fee = Params().IsTestChain();
-    if (gArgs.IsArgSet("-fallbackfee")) {
-        CAmount nFeePerK = 0;
-        if (!ParseMoney(gArgs.GetArg("-fallbackfee", ""), nFeePerK)) {
-            chain.initError(strprintf(_("Invalid amount for -fallbackfee=<amount>: '%s'").translated, gArgs.GetArg("-fallbackfee", "")));
-            return nullptr;
-        }
-        if (nFeePerK > HIGH_TX_FEE_PER_KB) {
-            chain.initWarning(AmountHighWarn("-fallbackfee") + " " +
-                              _("This is the transaction fee you may pay when fee estimates are not available.").translated);
-        }
-        walletInstance->m_fallback_fee = CFeeRate(nFeePerK);
-        walletInstance->m_allow_fallback_fee = nFeePerK != 0; //disable fallback fee in case value was set to 0, enable if non-null value
-    }
-    if (gArgs.IsArgSet("-discardfee")) {
-        CAmount nFeePerK = 0;
-        if (!ParseMoney(gArgs.GetArg("-discardfee", ""), nFeePerK)) {
-            chain.initError(strprintf(_("Invalid amount for -discardfee=<amount>: '%s'").translated, gArgs.GetArg("-discardfee", "")));
-            return nullptr;
-        }
-        if (nFeePerK > HIGH_TX_FEE_PER_KB) {
-            chain.initWarning(AmountHighWarn("-discardfee") + " " +
-                              _("This is the transaction fee you may discard if change is smaller than dust at this level").translated);
-        }
-        walletInstance->m_discard_rate = CFeeRate(nFeePerK);
-    }
-    if (gArgs.IsArgSet("-paytxfee")) {
-        CAmount nFeePerK = 0;
-        if (!ParseMoney(gArgs.GetArg("-paytxfee", ""), nFeePerK)) {
-            chain.initError(AmountErrMsg("paytxfee", gArgs.GetArg("-paytxfee", "")));
-            return nullptr;
-        }
-        if (nFeePerK > HIGH_TX_FEE_PER_KB) {
-            chain.initWarning(AmountHighWarn("-paytxfee") + " " +
-                              _("This is the transaction fee you will pay if you send a transaction.").translated);
-        }
-        walletInstance->m_pay_tx_fee = CFeeRate(nFeePerK, 1000);
-        if (walletInstance->m_pay_tx_fee < chain.relayMinFee()) {
-            chain.initError(strprintf(_("Invalid amount for -paytxfee=<amount>: '%s' (must be at least %s)").translated,
-                gArgs.GetArg("-paytxfee", ""), chain.relayMinFee().ToString()));
-            return nullptr;
-        }
-    }
-
-    if (gArgs.IsArgSet("-maxtxfee"))
-    {
-        CAmount nMaxFee = 0;
-        if (!ParseMoney(gArgs.GetArg("-maxtxfee", ""), nMaxFee)) {
-            chain.initError(AmountErrMsg("maxtxfee", gArgs.GetArg("-maxtxfee", "")));
-            return nullptr;
-        }
-        if (nMaxFee > HIGH_MAX_TX_FEE) {
-            chain.initWarning(_("-maxtxfee is set very high! Fees this large could be paid on a single transaction.").translated);
-        }
-        if (CFeeRate(nMaxFee, 1000) < chain.relayMinFee()) {
-            chain.initError(strprintf(_("Invalid amount for -maxtxfee=<amount>: '%s' (must be at least the minrelay fee of %s to prevent stuck transactions)").translated,
-                                       gArgs.GetArg("-maxtxfee", ""), chain.relayMinFee().ToString()));
-            return nullptr;
-        }
-        walletInstance->m_default_max_tx_fee = nMaxFee;
-    }
-
-    if (chain.relayMinFee().GetFeePerK() > HIGH_TX_FEE_PER_KB)
-        chain.initWarning(AmountHighWarn("-minrelaytxfee") + " " +
-                    _("The wallet will avoid paying less than the minimum relay fee.").translated);
-
-    walletInstance->m_confirm_target = gArgs.GetArg("-txconfirmtarget", DEFAULT_TX_CONFIRM_TARGET);
-    walletInstance->m_spend_zero_conf_change = gArgs.GetBoolArg("-spendzeroconfchange", DEFAULT_SPEND_ZEROCONF_CHANGE);
-    walletInstance->m_signal_rbf = gArgs.GetBoolArg("-walletrbf", DEFAULT_WALLET_RBF);
+    if (!walletInstance->ParseSettings(chain)) return nullptr;
 
     walletInstance->WalletLogPrintf("Wallet completed loading in %15dms\n", GetTimeMillis() - nStart);
 
@@ -4594,6 +4503,105 @@ std::shared_ptr<CWallet> CWallet::CreateWalletFromFile(interfaces::Chain& chain,
     }
 
     return walletInstance;
+}
+
+bool CWallet::ParseSettings(interfaces::Chain& chain)
+{
+    auto walletInstance = this;
+    if (!gArgs.GetArg("-addresstype", "").empty() && !ParseOutputType(gArgs.GetArg("-addresstype", ""), walletInstance->m_default_address_type)) {
+        chain.initError(strprintf("Unknown address type '%s'", gArgs.GetArg("-addresstype", "")));
+        return false;
+    }
+
+    if (!gArgs.GetArg("-changetype", "").empty() && !ParseOutputType(gArgs.GetArg("-changetype", ""), walletInstance->m_default_change_type)) {
+        chain.initError(strprintf("Unknown change type '%s'", gArgs.GetArg("-changetype", "")));
+        return false;
+    }
+
+    if (gArgs.IsArgSet("-mintxfee")) {
+        CAmount n = 0;
+        if (!ParseMoney(gArgs.GetArg("-mintxfee", ""), n) || 0 == n) {
+            chain.initError(AmountErrMsg("mintxfee", gArgs.GetArg("-mintxfee", "")));
+            return false;
+        }
+        if (n > HIGH_TX_FEE_PER_KB) {
+            chain.initWarning(AmountHighWarn("-mintxfee") + " " +
+                              _("This is the minimum transaction fee you pay on every transaction.").translated);
+        }
+        walletInstance->m_min_fee = CFeeRate(n);
+    }
+
+    walletInstance->m_allow_fallback_fee = Params().IsTestChain();
+    if (gArgs.IsArgSet("-fallbackfee")) {
+        CAmount nFeePerK = 0;
+        if (!ParseMoney(gArgs.GetArg("-fallbackfee", ""), nFeePerK)) {
+            chain.initError(strprintf(_("Invalid amount for -fallbackfee=<amount>: '%s'").translated, gArgs.GetArg("-fallbackfee", "")));
+            return false;
+        }
+        if (nFeePerK > HIGH_TX_FEE_PER_KB) {
+            chain.initWarning(AmountHighWarn("-fallbackfee") + " " +
+                              _("This is the transaction fee you may pay when fee estimates are not available.").translated);
+        }
+        walletInstance->m_fallback_fee = CFeeRate(nFeePerK);
+        walletInstance->m_allow_fallback_fee = nFeePerK != 0; //disable fallback fee in case value was set to 0, enable if non-null value
+    }
+    if (gArgs.IsArgSet("-discardfee")) {
+        CAmount nFeePerK = 0;
+        if (!ParseMoney(gArgs.GetArg("-discardfee", ""), nFeePerK)) {
+            chain.initError(strprintf(_("Invalid amount for -discardfee=<amount>: '%s'").translated, gArgs.GetArg("-discardfee", "")));
+            return false;
+        }
+        if (nFeePerK > HIGH_TX_FEE_PER_KB) {
+            chain.initWarning(AmountHighWarn("-discardfee") + " " +
+                              _("This is the transaction fee you may discard if change is smaller than dust at this level").translated);
+        }
+        walletInstance->m_discard_rate = CFeeRate(nFeePerK);
+    }
+    if (gArgs.IsArgSet("-paytxfee")) {
+        CAmount nFeePerK = 0;
+        if (!ParseMoney(gArgs.GetArg("-paytxfee", ""), nFeePerK)) {
+            chain.initError(AmountErrMsg("paytxfee", gArgs.GetArg("-paytxfee", "")));
+            return false;
+        }
+        if (nFeePerK > HIGH_TX_FEE_PER_KB) {
+            chain.initWarning(AmountHighWarn("-paytxfee") + " " +
+                              _("This is the transaction fee you will pay if you send a transaction.").translated);
+        }
+        walletInstance->m_pay_tx_fee = CFeeRate(nFeePerK, 1000);
+        if (walletInstance->m_pay_tx_fee < chain.relayMinFee()) {
+            chain.initError(strprintf(_("Invalid amount for -paytxfee=<amount>: '%s' (must be at least %s)").translated,
+                gArgs.GetArg("-paytxfee", ""), chain.relayMinFee().ToString()));
+            return false;
+        }
+    }
+
+    if (gArgs.IsArgSet("-maxtxfee"))
+    {
+        CAmount nMaxFee = 0;
+        if (!ParseMoney(gArgs.GetArg("-maxtxfee", ""), nMaxFee)) {
+            chain.initError(AmountErrMsg("maxtxfee", gArgs.GetArg("-maxtxfee", "")));
+            return false;
+        }
+        if (nMaxFee > HIGH_MAX_TX_FEE) {
+            chain.initWarning(_("-maxtxfee is set very high! Fees this large could be paid on a single transaction.").translated);
+        }
+        if (CFeeRate(nMaxFee, 1000) < chain.relayMinFee()) {
+            chain.initError(strprintf(_("Invalid amount for -maxtxfee=<amount>: '%s' (must be at least the minrelay fee of %s to prevent stuck transactions)").translated,
+                                       gArgs.GetArg("-maxtxfee", ""), chain.relayMinFee().ToString()));
+            return false;
+        }
+        walletInstance->m_default_max_tx_fee = nMaxFee;
+    }
+
+    if (chain.relayMinFee().GetFeePerK() > HIGH_TX_FEE_PER_KB)
+        chain.initWarning(AmountHighWarn("-minrelaytxfee") + " " +
+                    _("The wallet will avoid paying less than the minimum relay fee.").translated);
+
+    walletInstance->m_confirm_target = gArgs.GetArg("-txconfirmtarget", DEFAULT_TX_CONFIRM_TARGET);
+    walletInstance->m_spend_zero_conf_change = gArgs.GetBoolArg("-spendzeroconfchange", DEFAULT_SPEND_ZEROCONF_CHANGE);
+    walletInstance->m_signal_rbf = gArgs.GetBoolArg("-walletrbf", DEFAULT_WALLET_RBF);
+
+    return true;
 }
 
 void CWallet::handleNotifications()

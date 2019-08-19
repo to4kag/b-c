@@ -833,6 +833,16 @@ private:
     //! Fetches a key from the keypool
     bool GetKeyFromPool(CPubKey &key, bool internal = false);
 
+    /**
+     * Parse settings (currently only from gArgs)
+     * @returns false if the settings are unwanted and an InitError was thrown
+     * @note An InitError should only be thrown during startup and not during normal operation. This method is called
+     * during normal opersation when loading a wallet via the loadwallet RPC, but it will not throw an InitError because
+     * all settings have already been verified when loading the default wallet. When this is no longer the case, this
+     * method needs to be adjusted.
+     */
+    bool ParseSettings(interfaces::Chain& chain) EXCLUSIVE_LOCKS_REQUIRED(cs_wallet);
+
 public:
     /*
      * Main wallet lock.
