@@ -1595,17 +1595,18 @@ CWallet::ScanResult CWallet::ScanForWalletTransactions(const uint256& start_bloc
 {
     int64_t nNow = GetTime();
     int64_t start_time = GetTimeMillis();
-
     assert(reserver.isReserved());
 
-    uint256 block_hash = start_block;
     ScanResult result;
 
     WalletLogPrintf("Rescan started from block %s...\n", start_block.ToString());
 
+    uint256 block_hash = start_block;
+    int64_t block_num_chain_tx;
     fAbortRescan = false;
     ShowProgress(strprintf("%s " + _("Rescanning...").translated, GetDisplayName()), 0); // show rescan progress in GUI as dialog or on splashscreen, if -rescan on startup
     uint256 tip_hash;
+    int64_t tip_num_chain_tx;
     // The way the 'block_height' is initialized is just a workaround for the gcc bug #47679 since version 4.6.0.
     Optional<int> block_height = MakeOptional(false, int());
     double progress_begin;
@@ -1613,11 +1614,13 @@ CWallet::ScanResult CWallet::ScanForWalletTransactions(const uint256& start_bloc
     {
         auto locked_chain = chain().lock();
         if (Optional<int> tip_height = locked_chain->getHeight()) {
-            tip_hash = locked_chain->getBlockHash(*tip_height);
+            tip_hash = locked_chain->getBlockHash(*tip_height, &tip_num_chain_tx);
         }
         block_height = locked_chain->getBlockHeight(block_hash);
-        progress_begin = chain().guessVerificationProgress(block_hash);
-        progress_end = chain().guessVerificationProgress(stop_block.IsNull() ? tip_hash : stop_block);
+        progress_begin = chain().guessVerificationProgress(block_hash, -1 /* TODO getBlockHeight */);
+        progress_end = stop_block.IsNull() ?
+                           chain().guessVerificationProgress(tip_hash, tip_num_chain_tx) :
+                           chain().guessVerificationProgress(stop_block, *chain().getBlockNumChainTx(stop_block)); // common ancestor
     }
     double progress_current = progress_begin;
     while (block_height && !fAbortRescan && !chain().shutdownRequested()) {
@@ -1668,15 +1671,15 @@ CWallet::ScanResult CWallet::ScanForWalletTransactions(const uint256& start_bloc
             }
 
             // increment block and verification progress
-            block_hash = locked_chain->getBlockHash(++*block_height);
-            progress_current = chain().guessVerificationProgress(block_hash);
+            block_hash = locked_chain->getBlockHash(++*block_height, &block_num_chain_tx);
+            progress_current = chain().guessVerificationProgress(block_hash, block_num_chain_tx);
 
             // handle updated tip hash
             const uint256 prev_tip_hash = tip_hash;
-            tip_hash = locked_chain->getBlockHash(*tip_height);
+            tip_hash = locked_chain->getBlockHash(*tip_height, &tip_num_chain_tx);
             if (stop_block.IsNull() && prev_tip_hash != tip_hash) {
                 // in case the tip has changed, update progress max
-                progress_end = chain().guessVerificationProgress(tip_hash);
+                progress_end = chain().guessVerificationProgress(tip_hash, tip_num_chain_tx);
             }
         }
     }

@@ -198,7 +198,7 @@ static UniValue getbestblockhash(const JSONRPCRequest& request)
     return ::ChainActive().Tip()->GetBlockHash().GetHex();
 }
 
-void RPCNotifyBlockChange(bool ibd, const CBlockIndex * pindex)
+void RPCNotifyBlockChange(bool ibd, const CBlockIndex* pindex, int64_t /* ignored */)
 {
     if(pindex) {
         std::lock_guard<std::mutex> lock(cs_blockchange);
@@ -1244,7 +1244,7 @@ UniValue getblockchaininfo(const JSONRPCRequest& request)
     obj.pushKV("bestblockhash",         tip->GetBlockHash().GetHex());
     obj.pushKV("difficulty",            (double)GetDifficulty(tip));
     obj.pushKV("mediantime",            (int64_t)tip->GetMedianTimePast());
-    obj.pushKV("verificationprogress",  GuessVerificationProgress(Params().TxData(), tip));
+    obj.pushKV("verificationprogress", GuessVerificationProgress(Params().TxData(), tip, tip->nChainTx));
     obj.pushKV("initialblockdownload",  ::ChainstateActive().IsInitialBlockDownload());
     obj.pushKV("chainwork",             tip->nChainWork.GetHex());
     obj.pushKV("size_on_disk",          CalculateCurrentUsage());

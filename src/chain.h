@@ -9,6 +9,7 @@
 #include <arith_uint256.h>
 #include <consensus/params.h>
 #include <flatfile.h>
+#include <optional.h>
 #include <primitives/block.h>
 #include <tinyformat.h>
 #include <uint256.h>
@@ -397,6 +398,13 @@ public:
     /** Returns the index entry for the tip of this chain, or nullptr if none. */
     CBlockIndex *Tip() const {
         return vChain.size() > 0 ? vChain[vChain.size() - 1] : nullptr;
+    }
+
+    /** Returns the number of transactions in the chain as of pindex or nullopt if pindex is not in the chain */
+    Optional<int64_t> GetNumChainTx(const CBlockIndex* pindex) const
+    {
+        if (!Contains(pindex)) return {};
+        return pindex->nChainTx;
     }
 
     /** Returns the index entry at a particular height in this chain, or nullptr if no such height exists. */

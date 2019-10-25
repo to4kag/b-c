@@ -2401,7 +2401,7 @@ void static UpdateTip(const CBlockIndex* pindexNew, const CChainParams& chainPar
       pindexNew->GetBlockHash().ToString(), pindexNew->nHeight, pindexNew->nVersion,
       log(pindexNew->nChainWork.getdouble())/log(2.0), (unsigned long)pindexNew->nChainTx,
       FormatISO8601DateTime(pindexNew->GetBlockTime()),
-      GuessVerificationProgress(chainParams.TxData(), pindexNew), ::ChainstateActive().CoinsTip().DynamicMemoryUsage() * (1.0 / (1<<20)), ::ChainstateActive().CoinsTip().GetCacheSize(),
+      GuessVerificationProgress(chainParams.TxData(), pindexNew, pindexNew->nChainTx), ::ChainstateActive().CoinsTip().DynamicMemoryUsage() * (1.0 / (1<<20)), ::ChainstateActive().CoinsTip().GetCacheSize(),
       !warningMessages.empty() ? strprintf(" warning='%s'", warningMessages) : "");
 
 }
@@ -2862,7 +2862,7 @@ bool CChainState::ActivateBestChain(BlockValidationState &state, const CChainPar
                 GetMainSignals().UpdatedBlockTip(pindexNewTip, pindexFork, fInitialDownload);
 
                 // Always notify the UI if a new block tip was connected
-                uiInterface.NotifyBlockTip(fInitialDownload, pindexNewTip);
+                uiInterface.NotifyBlockTip(fInitialDownload, pindexNewTip, pindexNewTip->nChainTx);
             }
         }
         // When we reach this point, we switched to a new tip (stored in pindexNewTip).
@@ -3053,7 +3053,7 @@ bool CChainState::InvalidateBlock(BlockValidationState& state, const CChainParam
 
     // Only notify about a new block tip if the active chain was modified.
     if (pindex_was_in_chain) {
-        uiInterface.NotifyBlockTip(IsInitialBlockDownload(), to_mark_failed->pprev);
+        uiInterface.NotifyBlockTip(IsInitialBlockDownload(), to_mark_failed->pprev, to_mark_failed->pprev->nChainTx);
     }
     return true;
 }
@@ -4173,7 +4173,7 @@ bool CChainState::LoadChainTip(const CChainParams& chainparams)
         tip->GetBlockHash().ToString(),
         m_chain.Height(),
         FormatISO8601DateTime(tip->GetBlockTime()),
-        GuessVerificationProgress(chainparams.TxData(), tip));
+        GuessVerificationProgress(chainparams.TxData(), tip, tip->nChainTx));
     return true;
 }
 
@@ -5073,23 +5073,22 @@ bool DumpMempool(const CTxMemPool& pool)
     return true;
 }
 
-//! Guess how far we are in the verification process at the given block index
-//! require cs_main if pindex has not been validated yet (because nChainTx might be unset)
-double GuessVerificationProgress(const ChainTxData& data, const CBlockIndex *pindex) {
-    if (pindex == nullptr)
+double GuessVerificationProgress(const ChainTxData& data, const CBlockIndex* pindex, int64_t index_num_chain_tx)
+{
+    if (!pindex) {
         return 0.0;
-
+    }
     int64_t nNow = time(nullptr);
 
     double fTxTotal;
 
-    if (pindex->nChainTx <= data.nTxCount) {
+    if (index_num_chain_tx <= data.nTxCount) {
         fTxTotal = data.nTxCount + (nNow - data.nTime) * data.dTxRate;
     } else {
-        fTxTotal = pindex->nChainTx + (nNow - pindex->GetBlockTime()) * data.dTxRate;
+        fTxTotal = index_num_chain_tx + (nNow - pindex->GetBlockTime()) * data.dTxRate;
     }
 
-    return pindex->nChainTx / fTxTotal;
+    return index_num_chain_tx / fTxTotal;
 }
 
 class CMainCleanup

@@ -195,11 +195,13 @@ public:
     double getVerificationProgress() override
     {
         const CBlockIndex* tip;
+        int64_t tip_num_chain_tx;
         {
             LOCK(::cs_main);
             tip = ::ChainActive().Tip();
+            tip_num_chain_tx = tip->nChainTx;
         }
-        return GuessVerificationProgress(Params().TxData(), tip);
+        return GuessVerificationProgress(Params().TxData(), tip, tip_num_chain_tx);
     }
     bool isInitialBlockDownload() override { return ::ChainstateActive().IsInitialBlockDownload(); }
     bool getReindex() override { return ::fReindex; }
@@ -306,9 +308,9 @@ public:
     }
     std::unique_ptr<Handler> handleNotifyBlockTip(NotifyBlockTipFn fn) override
     {
-        return MakeHandler(::uiInterface.NotifyBlockTip_connect([fn](bool initial_download, const CBlockIndex* block) {
+        return MakeHandler(::uiInterface.NotifyBlockTip_connect([fn](bool initial_download, const CBlockIndex* block, int64_t block_num_chain_tx) {
             fn(initial_download, block->nHeight, block->GetBlockTime(),
-                GuessVerificationProgress(Params().TxData(), block));
+                GuessVerificationProgress(Params().TxData(), block, block_num_chain_tx));
         }));
     }
     std::unique_ptr<Handler> handleNotifyHeaderTip(NotifyHeaderTipFn fn) override

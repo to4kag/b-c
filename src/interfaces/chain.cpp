@@ -58,11 +58,12 @@ class LockImpl : public Chain::Lock, public UniqueLock<CCriticalSection>
         }
         return nullopt;
     }
-    uint256 getBlockHash(int height) override
+    uint256 getBlockHash(int height, int64_t* block_num_chain_tx) override
     {
         LockAssertion lock(::cs_main);
         CBlockIndex* block = ::ChainActive()[height];
         assert(block != nullptr);
+        if (block_num_chain_tx) *block_num_chain_tx = *::ChainActive().GetNumChainTx(block);
         return block->GetBlockHash();
     }
     int64_t getBlockTime(int height) override
@@ -264,10 +265,18 @@ public:
         return true;
     }
     void findCoins(std::map<COutPoint, Coin>& coins) override { return FindCoins(coins); }
-    double guessVerificationProgress(const uint256& block_hash) override
+    double guessVerificationProgress(const uint256& block_hash, int64_t block_num_chain_tx) override
     {
         LOCK(cs_main);
-        return GuessVerificationProgress(Params().TxData(), LookupBlockIndex(block_hash));
+        const CBlockIndex* block_index = LookupBlockIndex(block_hash);
+        if (!block_index) return {};
+        return GuessVerificationProgress(Params().TxData(), block_index, block_num_chain_tx);
+    }
+    Optional<int64_t> getBlockNumChainTx(const uint256& hash) override
+    {
+        LockAssertion lock(::cs_main);
+        CBlockIndex* block = LookupBlockIndex(hash);
+        return ::ChainActive().GetNumChainTx(block);
     }
     RBFTransactionState isRBFOptIn(const CTransaction& tx) override
     {

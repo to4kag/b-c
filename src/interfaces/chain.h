@@ -77,7 +77,8 @@ public:
         virtual Optional<int> getBlockHeight(const uint256& hash) = 0;
 
         //! Get block hash. Height must be valid or this function will abort.
-        virtual uint256 getBlockHash(int height) = 0;
+        //! Also return the block's number of chain tx as an optional output parameter.
+        virtual uint256 getBlockHash(int height, int64_t* block_num_chain_tx = nullptr) = 0;
 
         //! Get block time. Height must be valid or this function will abort.
         virtual int64_t getBlockTime(int height) = 0;
@@ -143,7 +144,10 @@ public:
 
     //! Estimate fraction of total transactions verified if blocks up to
     //! the specified block hash are verified.
-    virtual double guessVerificationProgress(const uint256& block_hash) = 0;
+    virtual double guessVerificationProgress(const uint256& block_hash, int64_t block_num_chain_tx) = 0;
+
+    //! Get number of chain transactions at this block
+    virtual Optional<int64_t> getBlockNumChainTx(const uint256& hash) = 0;
 
     //! Check if transaction is RBF opt in.
     virtual RBFTransactionState isRBFOptIn(const CTransaction& tx) = 0;
