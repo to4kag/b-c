@@ -3186,16 +3186,12 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
                     if (in_flight_it == state->m_tx_download.m_tx_in_flight.end()) {
                         // Skip any further work if this is a spurious NOTFOUND
                         // message.
-                        LogPrint(BCLog::NET, "Ignore spurious NOTFOUND for %s %s\n", inv.hash.ToString(), pfrom->ToString());
                         continue;
                     }
-                    LogPrint(BCLog::NET, "Process NOTFOUND for %s %s\n", inv.hash.ToString(), pfrom->ToString());
                     state->m_tx_download.m_tx_in_flight.erase(in_flight_it);
                     state->m_tx_download.m_tx_announced.erase(inv.hash);
                 }
             }
-        } else {
-            LogPrint(BCLog::NET, "Too large NOTFOUND sz=%s; %s\n", vInv.size(), pfrom->ToString());
         }
         return true;
     }
@@ -4004,7 +4000,7 @@ bool PeerLogicValidation::SendMessages(CNode* pto)
         if (state.m_tx_download.m_check_expiry_timer <= current_time) {
             for (auto it=state.m_tx_download.m_tx_in_flight.begin(); it != state.m_tx_download.m_tx_in_flight.end();) {
                 if (it->second <= current_time - TX_EXPIRY_INTERVAL) {
-                    LogPrint(BCLog::NET, "timeout of inflight tx %s; %s\n", it->first.ToString(), pto->ToString());
+                    LogPrint(BCLog::NET, "timeout of inflight tx %s from peer=%d\n", it->first.ToString(), pto->GetId());
                     state.m_tx_download.m_tx_announced.erase(it->first);
                     state.m_tx_download.m_tx_in_flight.erase(it++);
                 } else {
