@@ -1535,11 +1535,14 @@ void static ProcessGetData(CNode* pfrom, const CChainParams& chainparams, CConnm
             bool push = false;
             auto mi = mapRelay.find(inv.hash);
             int nSendFlags = (inv.type == MSG_TX ? SERIALIZE_TRANSACTION_NO_WITNESS : 0);
+            auto txinfo = mempool.info(inv.hash);
             if (mi != mapRelay.end()) {
                 connman->PushMessage(pfrom, msgMaker.Make(nSendFlags, NetMsgType::TX, *mi->second));
                 push = true;
+                if (!txinfo.tx) {
+                    LogPrintf("tx_in_mapRelay_not_mempool txid=%s time=%s peer=%s\n", inv.hash.ToString(), GetTime<std::chrono::seconds>().count(), pfrom->ToString());
+                }
             } else {
-                auto txinfo = mempool.info(inv.hash);
                 // To protect privacy, do not answer getdata using the mempool when
                 // that TX couldn't have been INVed in reply to a MEMPOOL request,
                 // or when it's too recent to have expired from mapRelay.
@@ -3887,6 +3890,7 @@ bool PeerLogicValidation::SendMessages(CNode* pto)
                             auto ret = mapRelay.insert(std::make_pair(hash, std::move(txinfo.tx)));
                             if (ret.second) {
                                 vRelayExpiration.push_back(std::make_pair(nNow + std::chrono::microseconds{RELAY_TX_CACHE_TIME}.count(), ret.first));
+                                LogPrintf("tx_added_mapRelay txid=%s time=%s\n", hash.ToString(), GetTime<std::chrono::seconds>().count());
                             }
                         }
                         if (vInv.size() == MAX_INV_SZ) {

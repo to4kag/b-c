@@ -913,6 +913,7 @@ void CTxMemPool::RemoveStaged(setEntries &stage, bool updateDescendants, MemPool
     AssertLockHeld(cs);
     UpdateForRemoveFromMempool(stage, updateDescendants);
     for (txiter it : stage) {
+        LogPrintf("tx_removed_mempool txid=%s time=%s reason=%s\n", it->GetTx().GetHash().ToString(), GetTime<std::chrono::seconds>().count(), static_cast<int>(reason));
         removeUnchecked(it, reason);
     }
 }
