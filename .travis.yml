@@ -28,7 +28,7 @@
 dist: xenial
 os: linux
 language: minimal
-arch: amd64
+arch: s390x
 cache:
   ccache: true
   directories:
