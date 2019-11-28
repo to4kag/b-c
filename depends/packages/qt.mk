@@ -133,6 +133,8 @@ $(package)_config_opts_powerpc64_linux = -platform linux-g++ -xplatform bitcoin-
 $(package)_config_opts_powerpc64le_linux = -platform linux-g++ -xplatform bitcoin-linux-g++
 $(package)_config_opts_riscv64_linux = -platform linux-g++ -xplatform bitcoin-linux-g++
 $(package)_config_opts_s390x_linux = -platform linux-g++ -xplatform bitcoin-linux-g++
+$(package)_config_opts_s390x_linux += -I$(host_prefix)/include
+$(package)_config_opts_s390x_linux += -L$(host_prefix)/lib
 
 $(package)_config_opts_mingw32 = -no-opengl
 $(package)_config_opts_mingw32 += -no-dbus
