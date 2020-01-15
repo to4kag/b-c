@@ -761,6 +761,69 @@ public:
 };
 
 /**
+ * 
+ */
+class DiskPool {
+	class DiskTx {
+		const size_t m_size;
+		const uint256 m_id;
+		const CFeeRate m_fee_rate;
+
+		bool operator<(const DiskTx& other) const{return m_id < other.m_id;}
+	        std::string FormatFileName() const { return "rate_txid";}
+	};
+	size_t m_disk_size{0};
+	const fs::path m_root_path;
+	using IndexedTransactions = boost::multi_index_container<
+		DiskTx,
+		boost::multi_index::indexed_by<
+			// sorted by DiskTx::operator<
+			boost::multi_index::ordered_unique<boost::multi_index::identity<DiskTx>>,
+		// sorted by feerate
+		boost::multi_index::ordered_non_unique<boost::multi_index::member<DiskTx, CAmount, &DiskTx::m_fee_rate>>
+			>
+			>;
+        IndexedTransactions m_disk_tx;
+	void InsertTx(const CDiskTx& tx) {
+		m_disk_size+=tx.m_size;
+		m_disk_tx.insert(tx);
+	}
+	void SubmitDiskPool(){
+		// for all files in dir
+		//    Deserialize
+		//    if tx feerate < min feerate continue
+		//    if input in Diskpool continue
+		//    ATMP
+		//    remove
+	}
+	void ReadDiskPool(){
+		// for all files in dir
+		// Deserialize
+		// InsertTx()
+	public:
+	void StoreTx(const CTransaction& tx, const CFeeRate& fee) {
+		// while (size limit and fee > min_fee) delete tx;
+		// save to disk
+		InsertTx({122, tx.GetHash(), fee});
+	}
+	void RemoveTx(const uint256& id) {
+		auto it = m_disk_tx.find(id);
+		m_disk_tx.erase(it);
+		m_disk_size-=it->m_size;
+		// erase from disk
+	}
+	DiskPool(const fs::path& root_dir):m_root_path{root_dir} {}
+	void Runner(){
+		fs::create_dirs(m_root_path);
+		ReadDiskPool();
+		while (not_interrupted && sleep(1)) {
+			SubmitDiskPool();
+		}
+	}
+};
+
+
+/**
  * DisconnectedBlockTransactions
 
  * During the reorg, it's desirable to re-add previously confirmed transactions
