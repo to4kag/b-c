@@ -1330,16 +1330,34 @@ void PeerLogicValidation::BlockChecked(const CBlock& block, const BlockValidatio
 //
 
 
+/** Time when received (either block or mempool or orphan or reject) */
+static std::map<uint256, std::chrono::seconds> g_received;
+static void SetFirstSeen(uint256 txid)
+{
+    auto it = g_received.find(txid);
+    if (it != g_received.end()) return;
+    g_received.emplace(std::move(txid), GetTime<std::chrono::seconds>());
+}
+static void LogTimeSinceFirstSeen(const std::string& why_have, const uint256& txid)
+{
+    const auto c_t = GetTime<std::chrono::seconds>();
+    const auto it = g_received.find(txid);
+    if (it != g_received.end()) {
+        LogPrintf("ZZZ17951 %s %s %s\n", why_have, std::chrono::seconds{c_t - it->second}.count(), txid.ToString());
+    } else {
+        LogPrintf("ZZZ17951 %s UNKNOWN %s\n", why_have, txid.ToString());
+    }
+}
+
+
 bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 {
-    switch (inv.type)
-    {
+    switch (inv.type) {
     case MSG_TX:
-    case MSG_WITNESS_TX:
+    case MSG_WITNESS_TX: {
         {
             assert(recentRejects);
-            if (::ChainActive().Tip()->GetBlockHash() != hashRecentRejectsChainTip)
-            {
+            if (::ChainActive().Tip()->GetBlockHash() != hashRecentRejectsChainTip) {
                 // If the chain tip has changed previously rejected transactions
                 // might be now valid, e.g. due to a nLockTime'd tx becoming valid,
                 // or a double-spend. Reset the rejects filter and give those
@@ -1350,17 +1368,32 @@ bool static AlreadyHave(const CInv& inv) EXCLUSIVE_LOCKS_REQUIRED(cs_main)
 
             {
                 LOCK(g_cs_orphans);
-                if (mapOrphanTransactions.count(inv.hash)) return true;
+                if (mapOrphanTransactions.count(inv.hash)) {
+                    LogTimeSinceFirstSeen("orphan", inv.hash);
+                    return true;
+                }
             }
 
             {
                 LOCK(g_cs_recent_confirmed_transactions);
-                if (g_recent_confirmed_transactions->contains(inv.hash)) return true;
+                if (g_recent_confirmed_transactions->contains(inv.hash)) {
+                    LogTimeSinceFirstSeen("confirmed", inv.hash);
+                    return true;
+                }
             }
 
-            return recentRejects->contains(inv.hash) ||
-                   mempool.exists(inv.hash);
+            if (recentRejects->contains(inv.hash)) {
+                LogTimeSinceFirstSeen("reject", inv.hash);
+                return true;
+            }
+
+            if (mempool.exists(inv.hash)) {
+                LogTimeSinceFirstSeen("mempool", inv.hash);
+                return true;
+            }
+            return false;
         }
+    }
     case MSG_BLOCK:
     case MSG_WITNESS_BLOCK:
         return LookupBlockIndex(inv.hash) != nullptr;
@@ -2529,6 +2562,9 @@ bool static ProcessMessage(CNode* pfrom, const std::string& strCommand, CDataStr
         CTransactionRef ptx;
         vRecv >> ptx;
         const CTransaction& tx = *ptx;
+
+
+        SetFirstSeen(tx.GetHash());
 
         CInv inv(MSG_TX, tx.GetHash());
         pfrom->AddInventoryKnown(inv);
