@@ -83,6 +83,12 @@ jobs:
         - set -o errexit; source ./ci/lint/06_script.sh
 
     - stage: test
+      name: 'RISCV64 [GOAL: install]  [sid]  [unit tests, functional tests]'
+      arch: amd64
+      env: >-
+        FILE_ENV="./ci/test/00_setup_env_riscv64.sh"
+
+    - stage: test
       name: 'ARM  [GOAL: install]  [buster]  [unit tests, functional tests]'
       arch: arm64
       env: >-

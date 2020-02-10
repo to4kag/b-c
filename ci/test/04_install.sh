@@ -81,6 +81,11 @@ fi
 
 if [ -n "$DPKG_ADD_ARCH" ]; then
   DOCKER_EXEC dpkg --add-architecture "$DPKG_ADD_ARCH"
+  DOCKER_EXEC apt update
+  DOCKER_EXEC apt install debian-ports-archive-keyring -y
+  DOCKER_EXEC echo deb http://ftp.ports.debian.org/debian-ports/ sid main \>\> /etc/apt/sources.list
+  DOCKER_EXEC apt update
+  DOCKER_EXEC apt install -y libc6:riscv64
 fi
 
 if [[ $DOCKER_NAME_TAG == centos* ]]; then
