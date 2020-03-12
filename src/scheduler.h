@@ -5,11 +5,6 @@
 #ifndef BITCOIN_SCHEDULER_H
 #define BITCOIN_SCHEDULER_H
 
-//
-// NOTE:
-// boost::thread should be ported to std::thread
-// when we support C++11.
-//
 #include <condition_variable>
 #include <functional>
 #include <list>
@@ -26,7 +21,7 @@
 // CScheduler* s = new CScheduler();
 // s->scheduleFromNow(doSomething, std::chrono::milliseconds{11}); // Assuming a: void doSomething() { }
 // s->scheduleFromNow([=] { this->func(argument); }, std::chrono::milliseconds{3});
-// boost::thread* t = new boost::thread(std::bind(CScheduler::serviceQueue, s));
+// std::thread* t = new std::thread([&] { s->serviceQueue(); });
 //
 // ... then at program shutdown, make sure to call stop() to clean up the thread(s) running serviceQueue:
 // s->stop();
@@ -43,7 +38,7 @@ public:
 
     typedef std::function<void()> Function;
 
-    // Call func at/after time t
+    /** Call func at/after time t */
     void schedule(Function f, std::chrono::system_clock::time_point t);
 
     /** Call f once after the delta has passed */
@@ -67,10 +62,7 @@ public:
      */
     void MockForward(std::chrono::seconds delta_seconds);
 
-    // To keep things as simple as possible, there is no unschedule.
-
-    // Services the queue 'forever'. Should be run in a thread,
-    // and interrupted using boost::interrupt_thread
+    /** Services the queue 'forever'. Should be run in a thread, interrupted with stop() */
     void serviceQueue();
 
     // Tell any threads running serviceQueue to stop as soon as they're
