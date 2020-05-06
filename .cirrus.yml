@@ -2,11 +2,11 @@ task:
   name: "FreeBsd 12.1 amd64  [GOAL: install]  [no depends, only system libs]"
   freebsd_instance:
     image_family: freebsd-12-1  # https://cirrus-ci.org/guide/FreeBSD/
-    cpu: 8
-    memory: 8G
+    cpu: 2
+    memory: 4G
   timeout_in: 60m
   env:
-    MAKEJOBS: "-j9"
+    MAKEJOBS: "-j3"
     CONFIGURE_OPTS: "--disable-dependency-tracking"
     GOAL: "install"
     TEST_RUNNER_PORT_MIN: "14000"  # Must be larger than 12321, which is used for the http cache. See https://cirrus-ci.org/guide/writing-tasks/#http-cache
@@ -27,7 +27,7 @@ task:
   check_script:
     - gmake check ${MAKEJOBS} VERBOSE=1
   functional_test_script:
-    - ./test/functional/test_runner.py --jobs 9 --ci --extended --exclude feature_dbcrash --combinedlogslen=1000 --quiet --failfast
+    - ./test/functional/test_runner.py --jobs 4 --ci --extended --exclude feature_dbcrash --combinedlogslen=1000 --quiet --failfast
 #task:
 #  name: "Windows"
 #  windows_container:
@@ -44,14 +44,56 @@ task:
 #  install_script:
 #    - choco install python --version=3.7.7 -y
 task:
-  name: "x86_64 Linux  [GOAL: install]  [bionic]  [Using ./ci/ system]"
+  name: "x86_64 Linux  [focal]  [system libs, no depends, valgrind]"
   container:
-    image: ubuntu:18.04
-    cpu: 8
-    memory: 8G
+    image: ubuntu:20.04
+    cpu: 2
+    memory: 4G
+  timeout_in: 240m
+  env:
+    FILE_ENV: "./ci/test/00_setup_env_native_valgrind.sh"
+    MAKEJOBS: "-j3"
+    DANGER_RUN_CI_ON_HOST: "1"
+    TEST_RUNNER_PORT_MIN: "14000"  # Must be larger than 12321, which is used for the http cache. See https://cirrus-ci.org/guide/writing-tasks/#http-cache
+    CCACHE_SIZE: "200M"
+    CCACHE_DIR: "/tmp/ccache_dir"
+  ccache_cache:
+    folder: "/tmp/ccache_dir"
+  depends_built_cache:
+    folder: "/tmp/cirrus-ci-build/depends/built"
+  ci_script:
+    - ./ci/test_run_all.sh
+  only_if: $BRANCH == "master"
+task:
+  name: "x86_64 Linux  [focal]  [system libs, no depends, fuzz, valgrind]"
+  container:
+    image: ubuntu:20.04
+    cpu: 2
+    memory: 4G
   timeout_in: 60m
   env:
-    MAKEJOBS: "-j9"
+    FILE_ENV: "./ci/test/00_setup_env_native_fuzz_with_valgrind.sh"
+    MAKEJOBS: "-j3"
+    DANGER_RUN_CI_ON_HOST: "1"
+    TEST_RUNNER_PORT_MIN: "14000"  # Must be larger than 12321, which is used for the http cache. See https://cirrus-ci.org/guide/writing-tasks/#http-cache
+    CCACHE_SIZE: "200M"
+    CCACHE_DIR: "/tmp/ccache_dir"
+  ccache_cache:
+    folder: "/tmp/ccache_dir"
+  depends_built_cache:
+    folder: "/tmp/cirrus-ci-build/depends/built"
+  ci_script:
+    - ./ci/test_run_all.sh
+  only_if: $BRANCH == "master"
+task:
+  name: "x86_64 Linux  [focal]  [Using ./ci/ system]"
+  container:
+    image: ubuntu:20.04
+    cpu: 2
+    memory: 4G
+  timeout_in: 60m
+  env:
+    MAKEJOBS: "-j3"
     DANGER_RUN_CI_ON_HOST: "1"
     TEST_RUNNER_PORT_MIN: "14000"  # Must be larger than 12321, which is used for the http cache. See https://cirrus-ci.org/guide/writing-tasks/#http-cache
     CCACHE_SIZE: "200M"
@@ -66,3 +108,4 @@ task:
     - ccache --max-size=${CCACHE_SIZE}
   ci_script:
     - ./ci/test_run_all.sh
+  only_if: $BRANCH == "master"
