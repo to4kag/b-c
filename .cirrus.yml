@@ -17,6 +17,14 @@ task:
     folder: "/tmp/ccache_dir"
   install_script:
     - pkg install -y autoconf automake boost-libs git gmake libevent libtool pkgconf python3 ccache
+    - git clone https://github.com/stewartsmith/libeatmydata.git
+    - cd libeatmydata
+    - autoreconf -i
+    - ./configure
+    - sed -i -e 's/O_DSYNC/O_SYNC/g' $(git grep -l O_DSYNC)
+    - make
+    - make install  # eatmydata
+    - cd ..
     - ./contrib/install_db4.sh $(pwd)
     - ccache --max-size=${CCACHE_SIZE}
   configure_script:
@@ -27,7 +35,7 @@ task:
   check_script:
     - gmake check ${MAKEJOBS} VERBOSE=1
   functional_test_script:
-    - ./test/functional/test_runner.py --jobs 9 --ci --extended --exclude feature_dbcrash --combinedlogslen=1000 --quiet --failfast
+    - eatmydata ./test/functional/test_runner.py --jobs 9 --ci --extended --exclude feature_dbcrash --combinedlogslen=1000 --quiet --failfast --factor=10
 #task:
 #  name: "Windows"
 #  windows_container:
