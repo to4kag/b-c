@@ -52,7 +52,7 @@ global_task_template: &GLOBAL_TASK_TEMPLATE
 #    - choco install python --version=3.7.7 -y
 
 task:
-  name: 'x86_64 Linux  [GOAL: install]  [focal]  [depends, sanitizers: thread (TSan), no gui]'
+  name: 'x86_64 Linux  [GOAL: install]  [focal]  [no depends, sanitizers: thread (TSan), no wallet]'
   << : *GLOBAL_TASK_TEMPLATE
   container:
     image: ubuntu:focal
