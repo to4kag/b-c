@@ -16,13 +16,13 @@
 class ArgsManager;
 class AddrMan;
 class CAddress;
-class CDataStream;
+class DataStream;
 class NetGroupManager;
 struct bilingual_str;
 
 bool DumpPeerAddresses(const ArgsManager& args, const AddrMan& addr);
-/** Only used by tests. */
-void ReadFromStream(AddrMan& addr, CDataStream& ssPeers);
+template <typename Addr>
+void ReadFromStreamUnitTests(Addr&& addr, DataStream& ssPeers);
 
 /** Access to the banlist database (banlist.json) */
 class CBanDB
